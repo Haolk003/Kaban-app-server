@@ -1,0 +1,21 @@
+{
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "y/common": "<rootDir>/../libs/common/src",
+    "y/common/(.*)": "<rootDir>/../libs/common/src/$1",
+    "y/prisma": "<rootDir>/../libs/prisma/src",
+    "y/prisma/(.*)": "<rootDir>/../libs/prisma/src/$1",
+    "y/rabbitmq": "<rootDir>/../libs/rabbitmq/src",
+    "y/rabbitmq/(.*)": "<rootDir>/../libs/rabbitmq/src/$1"
+  }
+}
