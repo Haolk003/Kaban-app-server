@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - '5672:5672' # Cổng AMQP để giao tiếp giữa các service
+      - '15672:15672' # Cổng quản lý web RabbitMQ
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin

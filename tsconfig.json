@@ -24,6 +24,12 @@
       "y/common/*": [
         "libs/common/src/*"
       ],
+      "y/email": [
+        "libs/email/src"
+      ],
+      "y/email/*": [
+        "libs/email/src/*"
+      ],
       "y/prisma": [
         "libs/prisma/src"
       ],
