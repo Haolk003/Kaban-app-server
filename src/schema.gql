@@ -2,6 +2,47 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input ActivateUserDto {
+  activationCode: String!
+  token: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+input LoginDto {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  activateUser(activateUserInput: ActivateUserDto!): User!
+  getGoogleAuthUrl: String!
+  googleLogin(code: String!): User!
+  googleLoginCallback: User!
+  login(input: LoginDto!): User!
+  registerUser(registerDto: RegisterDto!): String!
+}
+
 type Query {
   hello: String!
+}
+
+input RegisterDto {
+  email: String!
+  name: String!
+  password: String!
+}
+
+type User {
+  avatar: String!
+  createdAt: DateTime!
+  email: String!
+  googleId: String!
+  id: String!
+  name: String!
+  password: String!
+  updateAt: DateTime!
 }
