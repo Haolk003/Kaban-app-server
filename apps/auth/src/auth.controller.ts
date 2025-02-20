@@ -16,8 +16,6 @@ export class AuthController {
   @Get('auth/google/callback')
   @UseGuards(AuthGuard('google'))
   async googleLoginCallback(@Req() req: Request) {
-    console.log(req.user);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const user = await this.authService.validateGoogleUser({ ...req.user });
     console.log(user);
     return 'hello';

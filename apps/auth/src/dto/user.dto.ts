@@ -46,3 +46,26 @@ export class ActivateUserDto {
   @IsString()
   token: string;
 }
+
+@InputType()
+export class forgotPasswordDto {
+  @Field()
+  @IsNotEmpty({ message: 'email is required' })
+  email: string;
+}
+
+@InputType()
+export class resetPasswordDto {
+  @Field()
+  @IsNotEmpty({ message: 'Email is required' })
+  @IsEmail()
+  email: string;
+
+  @Field()
+  @IsNotEmpty({ message: 'Token is required' })
+  token: string;
+
+  @Field()
+  @IsNotEmpty({ message: 'Password is required' })
+  newPassword: string;
+}

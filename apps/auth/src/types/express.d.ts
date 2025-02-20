@@ -1,12 +1,10 @@
-// src/types/express.d.ts
+import 'express';
 
-// import { User } from '@prisma/client';
-
-declare module 'express' {
-  interface Request {
-    accesstoken?: string;
-    refreshtoken?: string;
-    user?: any;
-    body?: any;
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+      me?: unknown;
+    }
   }
 }

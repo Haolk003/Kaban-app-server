@@ -25,6 +25,8 @@ import { EmailModule, EmailService } from 'y/email';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       playground: true,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      context: ({ req, res }) => ({ req, res }),
     }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
