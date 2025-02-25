@@ -17,32 +17,56 @@ input LoginDto {
   password: String!
 }
 
+type LoginResponse {
+  access_token: String!
+  refresh_token: String!
+}
+
 type Mutation {
   activateUser(activateUserInput: ActivateUserDto!): User!
+  forgotPassword(forgotPasswordInput: forgotPasswordDto!): User!
   getGoogleAuthUrl: String!
   googleLogin(code: String!): User!
   googleLoginCallback: User!
-  login(input: LoginDto!): User!
+  login(loginInput: LoginDto!): LoginResponse!
   registerUser(registerDto: RegisterDto!): String!
+  resetPassword(resetPasswordInput: resetPasswordDto!): String!
 }
 
 type Query {
   hello: String!
+  me: User!
 }
 
 input RegisterDto {
   email: String!
-  name: String!
+  firstName: String!
+  lastName: String!
   password: String!
 }
 
 type User {
-  avatar: String!
+  avatar: String
   createdAt: DateTime!
   email: String!
-  googleId: String!
+  githubId: String
+  googleId: String
   id: String!
+  loginType: String!
   name: String!
-  password: String!
-  updateAt: DateTime!
+  password: String
+  password_reset_created_at: String
+  password_reset_expires_at: String
+  password_reset_token_hash: String
+  updatedAt: DateTime!
+}
+
+input forgotPasswordDto {
+  email: String!
+}
+
+input resetPasswordDto {
+  email: String!
+  newPassword: String!
+  token: String!
 }

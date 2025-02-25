@@ -13,6 +13,8 @@ import { LocalStrategy } from './strategies/local.trategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { EmailModule, EmailService } from 'y/email';
+import { GithubStrategy } from './strategies/github.strategy';
+
 @Module({
   imports: [
     EmailModule,
@@ -25,6 +27,8 @@ import { EmailModule, EmailService } from 'y/email';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       playground: true,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      context: ({ req, res }) => ({ req, res }),
     }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -44,6 +48,7 @@ import { EmailModule, EmailService } from 'y/email';
     JwtService,
     GoogleStrategy,
     LocalStrategy,
+    GithubStrategy,
     JwtStrategy,
   ],
 })

@@ -6,7 +6,6 @@ import { AuthService } from '../auth.service';
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private readonly authService: AuthService) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super({
       clientID: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
@@ -15,17 +14,20 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  async validate(
+  validate(
     accessToken: string,
     refreshToken: string,
-    profile: any,
+    profile: {
+      name: { givenName: string; familyName: string };
+      photos: [{ value: string }];
+      emails: [{ value: string }];
+      id: string;
+    },
     done: VerifyCallback,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { name, emails, photos, id } = profile;
     const user = {
       id,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       email: emails[0].value,
       firstName: name.givenName,
       lastName: name.familyName,

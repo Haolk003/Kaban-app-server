@@ -17,10 +17,16 @@ export class LoginDto {
 @InputType()
 export class RegisterDto {
   @Field()
-  @IsNotEmpty({ message: 'Name is required' })
-  @MinLength(3, { message: 'Name must be at least 3 characters' })
-  @IsString({ message: 'Name must need to be one string' })
-  name: string;
+  @IsNotEmpty({ message: 'First Name is required' })
+  @MinLength(3, { message: 'First Name must be at least 3 characters' })
+  @IsString({ message: 'First Name must need to be one string' })
+  firstName: string;
+
+  @Field()
+  @IsNotEmpty({ message: 'Last Name is required' })
+  @MinLength(3, { message: 'Last Name must be at least 3 characters' })
+  @IsString({ message: 'Last Name must need to be one string' })
+  lastName: string;
 
   @Field()
   @IsNotEmpty({ message: 'Email is required' })
@@ -45,4 +51,27 @@ export class ActivateUserDto {
   @IsNotEmpty({ message: 'Token is required' })
   @IsString()
   token: string;
+}
+
+@InputType()
+export class forgotPasswordDto {
+  @Field()
+  @IsNotEmpty({ message: 'email is required' })
+  email: string;
+}
+
+@InputType()
+export class resetPasswordDto {
+  @Field()
+  @IsNotEmpty({ message: 'Email is required' })
+  @IsEmail()
+  email: string;
+
+  @Field()
+  @IsNotEmpty({ message: 'Token is required' })
+  token: string;
+
+  @Field()
+  @IsNotEmpty({ message: 'Password is required' })
+  newPassword: string;
 }

@@ -16,14 +16,20 @@ datasource db {
 
 model User{
   id String @id @default(uuid())
-  email String @unique
+  email String 
   name String
+  loginType String @default("email")
   googleId String? @unique 
+  githubId String? @unique
   avatar String? 
-  password String 
+  password String?  
+  password_reset_token_hash String? 
+  password_reset_expires_at DateTime?
+  password_reset_created_at DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   board Board[]
+  
 }
 
 model Board{
