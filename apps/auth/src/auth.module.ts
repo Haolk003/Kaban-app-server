@@ -13,6 +13,8 @@ import { LocalStrategy } from './strategies/local.trategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { EmailModule, EmailService } from 'y/email';
+import { GithubStrategy } from './strategies/github.strategy';
+
 @Module({
   imports: [
     EmailModule,
@@ -46,6 +48,7 @@ import { EmailModule, EmailService } from 'y/email';
     JwtService,
     GoogleStrategy,
     LocalStrategy,
+    GithubStrategy,
     JwtStrategy,
   ],
 })

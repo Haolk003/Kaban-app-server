@@ -40,7 +40,8 @@ type Query {
 
 input RegisterDto {
   email: String!
-  name: String!
+  firstName: String!
+  lastName: String!
   password: String!
 }
 
@@ -48,10 +49,12 @@ type User {
   avatar: String
   createdAt: DateTime!
   email: String!
+  githubId: String
   googleId: String
   id: String!
+  loginType: String!
   name: String!
-  password: String!
+  password: String
   password_reset_created_at: String
   password_reset_expires_at: String
   password_reset_token_hash: String

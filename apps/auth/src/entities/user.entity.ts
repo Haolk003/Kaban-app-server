@@ -8,8 +8,11 @@ export class User {
   @Field()
   email: string;
 
+  @Field(() => String, { nullable: true })
+  password?: string | null;
+
   @Field()
-  password: string;
+  loginType: string;
 
   @Field(() => String, { nullable: true })
   avatar?: string | null;
@@ -19,6 +22,9 @@ export class User {
 
   @Field(() => String, { nullable: true })
   googleId?: string | null;
+
+  @Field(() => String, { nullable: true })
+  githubId?: string | null;
 
   @Field(() => String, { nullable: true })
   password_reset_token_hash?: string | null;

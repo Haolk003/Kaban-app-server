@@ -55,8 +55,9 @@ export class AuthService {
   }
 
   async validateUser(email: string, password: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
-    console.log(user);
+    const user = await this.prisma.user.findFirst({
+      where: { email, loginType: 'google' },
+    });
 
     if (
       user &&
@@ -69,12 +70,16 @@ export class AuthService {
   }
 
   async registerUser(registerDto: {
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
     password: string;
   }) {
-    const { name, email, password } = registerDto;
-    const userExist = await this.prisma.user.findUnique({ where: { email } });
+    const { firstName, lastName, email, password } = registerDto;
+    const userExist = await this.prisma.user.findFirst({
+      where: { email, loginType: 'email' },
+    });
+
     if (userExist) {
       throw new UnauthorizedException('Email is exist');
     }
@@ -83,7 +88,7 @@ export class AuthService {
 
     const token = this.jwtService.sign(
       {
-        user: { name, email, password },
+        user: { name: `${firstName} ${lastName}`, email, password },
         activationCode: code,
       },
       {
@@ -96,7 +101,7 @@ export class AuthService {
       subject: 'Verify Email',
       template: 'activation-email.ejs',
       to: email,
-      variables: { name, activationCode: code },
+      variables: { name: `${lastName} ${firstName}`, activationCode: code },
     });
 
     return token;
@@ -138,35 +143,13 @@ export class AuthService {
     });
 
     if (!user) {
-      let password = '';
-      const charcters =
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijk lmnopqrstuvwxyz0123456789!@#$%^&*()_+';
-
-      for (let i = 0; i < 8; i++) {
-        const index = Math.floor(Math.random() * charcters.length);
-        password += charcters[index];
-      }
-
-      const hashedPassword = bcryptJs.hashSync(password, 10);
-
       user = await this.prisma.user.create({
         data: {
           googleId: profile.id,
           email: profile.email,
           name: profile.lastName + profile.firstName,
           avatar: profile.picture,
-          password: hashedPassword,
-        },
-      });
-
-      this.emailService.sendEmail({
-        subject: 'Your Password',
-        template: 'welcome.ejs',
-        to: user.email,
-        variables: {
-          name: user.name,
-          newPassword: password,
-          loginUrl: 'http://localhost:3000/login',
+          loginType: 'google',
         },
       });
     }
@@ -174,7 +157,9 @@ export class AuthService {
   }
 
   async loginUser(email: string, res: Response) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.prisma.user.findFirst({
+      where: { email, loginType: 'email' },
+    });
 
     if (!user) {
       throw new UnauthorizedException();
@@ -209,7 +194,9 @@ export class AuthService {
   };
 
   async forgotPassword(email: string) {
-    const userExist = await this.prisma.user.findUnique({ where: { email } });
+    const userExist = await this.prisma.user.findFirstOrThrow({
+      where: { email, loginType: 'email' },
+    });
 
     if (!userExist) {
       throw new BadRequestException('User not found');
@@ -218,8 +205,8 @@ export class AuthService {
     const resetToken = this.generateResetToken();
     const hashedToken = await this.hashResetToken(resetToken);
 
-    const updatedUser = await this.prisma.user.update({
-      where: { email },
+    const updatedUser = await this.prisma.user.updateMany({
+      where: { email, loginType: 'email' },
       data: {
         password_reset_token_hash: hashedToken,
         password_reset_expires_at: new Date(Date.now() + 3600000),
@@ -244,7 +231,9 @@ export class AuthService {
     token: string,
     newPassword: string,
   ): Promise<string> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.prisma.user.findFirst({
+      where: { email, loginType: 'email' },
+    });
     if (
       !user ||
       !user.password_reset_token_hash ||
@@ -258,18 +247,39 @@ export class AuthService {
       user.password_reset_token_hash,
     );
 
-    console.log(isTokenValid);
-
     if (!isTokenValid || user.password_reset_expires_at < new Date()) {
       throw new BadRequestException('Invalid or expired token');
     }
 
     const hashedPassword = await bcryptJs.hash(newPassword, 10);
 
-    await this.prisma.user.update({
-      where: { email },
+    await this.prisma.user.updateMany({
+      where: { email, loginType: 'email' },
       data: { password: hashedPassword },
     });
     return 'Password is updated';
+  }
+
+  async findOrCreateUser(profile: {
+    id: string;
+    username: string;
+    emails: { value: string }[];
+    photos: { value: string }[];
+  }) {
+    const user = await this.prisma.user.upsert({
+      where: { githubId: profile.id },
+      update: {
+        name: profile.username,
+        email: profile.emails?.[0]?.value,
+        avatar: profile.photos?.[0]?.value,
+      },
+      create: {
+        githubId: profile.id,
+        name: profile.username,
+        email: profile.emails?.[0]?.value,
+        avatar: profile.photos?.[0]?.value,
+      },
+    });
+    return user;
   }
 }
