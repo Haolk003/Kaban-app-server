@@ -6,7 +6,6 @@ import { Request, Response } from 'express';
 
 import { User } from './entities/user.entity';
 
-import { GqlAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import {
   LoginDto,
@@ -16,40 +15,12 @@ import {
   resetPasswordDto,
 } from './dto/user.dto';
 
-import { LoginResponse } from './types/user.type';
+import { LoginResponse, RegisterResponse } from './types/user.type';
 import { AuthGuard } from './guards/auth.guard';
 
 @Resolver('Auth')
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
-
-  @Mutation(() => User)
-  @UseGuards(GqlAuthGuard)
-  async googleLogin(
-    @Args('code') code: string,
-    @Context() context: { req: Request; res: Response },
-  ) {
-    const req = context.req;
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const user = req.user as any;
-    return this.authService.validateGoogleUser(user);
-  }
-
-  @Mutation(() => User)
-  async googleLoginCallback(
-    @Context() context: { req: Request; res: Response },
-  ) {
-    const req = context.req;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const user = req.user as any;
-    return this.authService.validateGoogleUser(user);
-  }
-
-  @Query(() => String)
-  hello() {
-    return 'hello';
-  }
 
   @Mutation(() => String)
   getGoogleAuthUrl() {
@@ -65,10 +36,10 @@ export class AuthResolver {
     return this.authService.loginUser(loginDto.email, ctx.res);
   }
 
-  @Mutation(() => String)
+  @Mutation(() => RegisterResponse)
   async registerUser(@Args('registerDto') registerDto: RegisterDto) {
     const token = await this.authService.registerUser(registerDto);
-    return token;
+    return { token };
   }
 
   @Mutation(() => User)

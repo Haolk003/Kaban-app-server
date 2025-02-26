@@ -33,7 +33,16 @@ export class User {
   password_reset_expires_at?: Date | null;
 
   @Field(() => String, { nullable: true })
-  password_reset_created_at?: Date | null;
+  activation_code?: string | null;
+
+  @Field()
+  isVerified: boolean;
+
+  @Field(() => String, { nullable: true })
+  verification_token?: string | null;
+
+  @Field(() => Date, { nullable: true })
+  verification_token_expires_at?: Date | null;
 
   @Field()
   createdAt: Date;

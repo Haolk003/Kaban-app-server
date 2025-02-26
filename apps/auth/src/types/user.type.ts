@@ -16,4 +16,16 @@ export class LoginResponse {
 
   @Field()
   refresh_token: string;
+
+  @Field(() => ErrorType, { nullable: true })
+  error?: ErrorType;
+}
+
+@ObjectType()
+export class RegisterResponse {
+  @Field()
+  token: string;
+
+  @Field(() => ErrorType, { nullable: true })
+  error?: ErrorType;
 }

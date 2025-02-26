@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { AuthService } from '../auth.service';
 import axios from 'axios';
+import { VerifiedCallback } from 'passport-jwt';
 
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
@@ -22,9 +23,11 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     profile: {
       id: string;
       username: string;
+      displayName: string;
       emails: [{ value: string }];
       photos: [{ value: string }];
     },
+    done: VerifiedCallback,
   ): Promise<any> {
     interface Email {
       email: string;
@@ -46,10 +49,13 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     if (!primaryEmail) {
       throw new Error('No primary email found');
     }
-    const user = await this.authService.findOrCreateUser({
-      ...profile,
-      emails: [{ value: primaryEmail }],
-    });
-    return user;
+    const user = {
+      id: profile.id,
+      name: profile.displayName,
+      picture: profile.photos[0].value,
+      email: primaryEmail,
+    };
+
+    done(null, user);
   }
 }

@@ -13,9 +13,15 @@ export class AuthController {
     return this.authService.getHello();
   }
 
+  @Get('auth/google')
+  @UseGuards(AuthGuard('google'))
+  google() {
+    return 'login-google';
+  }
+
   @Get('auth/google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleLoginCallback(@Req() req: Request) {
+  async googleLoginCallback(@Req() req: Request, @Res() res: Response) {
     if (!req.user) {
       return 'No user from google';
     }
@@ -26,15 +32,18 @@ export class AuthController {
       lastName: string;
       picture: string;
     };
-    const reponse = await this.authService.validateGoogleUser({
-      id,
-      email,
-      firstName,
-      lastName,
-      picture,
-    });
+    await this.authService.validateGoogleUser(
+      {
+        id,
+        email,
+        firstName,
+        lastName,
+        picture,
+      },
+      res,
+    );
 
-    return reponse;
+    return res.redirect('http://localhost:3000');
   }
 
   @Get('auth/github')
@@ -45,7 +54,16 @@ export class AuthController {
 
   @Get('auth/github/callback')
   @UseGuards(AuthGuard('github'))
-  callback(@Req() req: Request, @Res() res: Response) {
-    res.redirect(`http://localhost:3000/login-success?token=ab`);
+  async callback(@Req() req: Request, @Res() res: Response) {
+    const { id, name, email, picture } = req.user as {
+      id: string;
+      name: string;
+      email: string;
+      picture: string;
+    };
+
+    await this.authService.validateGithub({ email, id, name, picture }, res);
+
+    return res.redirect('http://localhost:3000');
   }
 }

@@ -12,6 +12,11 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type ErrorType {
+  code: String
+  message: String!
+}
+
 input LoginDto {
   email: String!
   password: String!
@@ -19,6 +24,7 @@ input LoginDto {
 
 type LoginResponse {
   access_token: String!
+  error: ErrorType
   refresh_token: String!
 }
 
@@ -26,15 +32,12 @@ type Mutation {
   activateUser(activateUserInput: ActivateUserDto!): User!
   forgotPassword(forgotPasswordInput: forgotPasswordDto!): User!
   getGoogleAuthUrl: String!
-  googleLogin(code: String!): User!
-  googleLoginCallback: User!
   login(loginInput: LoginDto!): LoginResponse!
-  registerUser(registerDto: RegisterDto!): String!
+  registerUser(registerDto: RegisterDto!): RegisterResponse!
   resetPassword(resetPasswordInput: resetPasswordDto!): String!
 }
 
 type Query {
-  hello: String!
   me: User!
 }
 
@@ -45,20 +48,28 @@ input RegisterDto {
   password: String!
 }
 
+type RegisterResponse {
+  error: ErrorType
+  token: String!
+}
+
 type User {
+  activation_code: String
   avatar: String
   createdAt: DateTime!
   email: String!
   githubId: String
   googleId: String
   id: String!
+  isVerified: Boolean!
   loginType: String!
   name: String!
   password: String
-  password_reset_created_at: String
   password_reset_expires_at: String
   password_reset_token_hash: String
   updatedAt: DateTime!
+  verification_token: String
+  verification_token_expires_at: DateTime
 }
 
 input forgotPasswordDto {
