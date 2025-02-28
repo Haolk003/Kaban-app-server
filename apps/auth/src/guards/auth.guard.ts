@@ -52,8 +52,8 @@ export class AuthGuard implements CanActivate {
       await this.updateAccessToken(req, res);
       return true;
     } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, no-constant-condition
-      if ((error.name = 'TokenExpiredError')) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (error.name === 'TokenExpiredError') {
         // await this.updateAccessToken(req, res);
         return true;
       }

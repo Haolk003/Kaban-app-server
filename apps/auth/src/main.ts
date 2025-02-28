@@ -11,16 +11,16 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: 'http://localhost:4000',
     credentials: true,
   });
 
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ limit: '50mb', extended: true }));
-  app.set('trust proxy', 1);
+  // app.set('trust proxy', 1);
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.setBaseViewsDir(join(__dirname, '..', 'server/email-templates'));
   app.setViewEngine('ejs');
-  await app.listen(process.env.port ?? 3001);
+  await app.listen(process.env.port ?? 4001);
 }
 bootstrap();

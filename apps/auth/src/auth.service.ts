@@ -28,7 +28,7 @@ export class AuthService {
   getHello(): string {
     return 'Hello World!';
   }
-  private sendToken(user: User) {
+  private sendToken(user: { email: string; id: string }) {
     const access_token = this.jwtService.sign(
       {
         emai: user.email,
@@ -55,14 +55,29 @@ export class AuthService {
   }
 
   async validateUser(email: string, password: string) {
-    const user = await this.prisma.user.findFirst({
-      where: { email, loginType: 'email' },
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        account: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const account = await this.prisma.account.findMany({
+      where: {
+        userId: user.id,
+        provider: 'email',
+      },
     });
 
     if (
-      user &&
-      user.password &&
-      bcryptJs.compareSync(password, user.password)
+      account &&
+      account.length > 0 &&
+      account[0].passwordHash &&
+      bcryptJs.compareSync(password, account[0].passwordHash)
     ) {
       return user;
     }
@@ -76,8 +91,8 @@ export class AuthService {
     password: string;
   }) {
     const { firstName, lastName, email, password } = registerDto;
-    const userExist = await this.prisma.user.findFirst({
-      where: { email, loginType: 'email' },
+    const userExist = await this.prisma.user.findUnique({
+      where: { email },
     });
 
     if (userExist && userExist.isVerified) {
@@ -95,6 +110,52 @@ export class AuthService {
         secret: this.configService.get<string>('JWT_SECRECT'),
       },
     );
+    const hashedPassword = bcryptJs.hashSync(password, 10);
+    if (userExist) {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.user.update({
+          where: { email },
+          data: {
+            name: `${firstName} ${lastName}`,
+            verification_token: token,
+            activation_code: String(code),
+            verification_token_expires_at: new Date(Date.now() + 600000),
+          },
+        });
+
+        await this.prisma.account.upsert({
+          where: {
+            provider_userId: { provider: 'email', userId: userExist.id },
+          },
+          create: {
+            provider: 'email',
+            passwordHash: hashedPassword,
+            userId: userExist.id,
+          },
+          update: {},
+        });
+      });
+    } else {
+      await this.prisma.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            email,
+            name: `${firstName} ${lastName}`,
+            verification_token: token,
+            activation_code: String(code),
+            verification_token_expires_at: new Date(Date.now() + 600000),
+          },
+        });
+
+        await tx.account.create({
+          data: {
+            provider: 'email',
+            passwordHash: hashedPassword,
+            userId: user.id,
+          },
+        });
+      });
+    }
 
     await this.emailService.sendEmail({
       subject: 'Verify Email',
@@ -102,31 +163,6 @@ export class AuthService {
       to: email,
       variables: { name: `${lastName} ${firstName}`, activationCode: code },
     });
-
-    if (!userExist) {
-      const hashedPassword = bcryptJs.hashSync(password, 10);
-
-      await this.prisma.user.create({
-        data: {
-          name: `${firstName} ${lastName}`,
-          email,
-          loginType: 'email',
-          password: hashedPassword,
-          verification_token: token,
-          activation_code: String(code),
-          verification_token_expires_at: new Date(Date.now() + 600000),
-        },
-      });
-    } else {
-      await this.prisma.user.updateMany({
-        where: { email, loginType: 'email' },
-        data: {
-          verification_token: token,
-          activation_code: String(code),
-          verification_token_expires_at: new Date(Date.now() + 600000),
-        },
-      });
-    }
 
     return token;
   }
@@ -138,10 +174,9 @@ export class AuthService {
       secret: this.configService.get<string>('JWT_SECRECT'),
     });
 
-    const userExist = await this.prisma.user.findFirst({
+    const userExist = await this.prisma.user.findUnique({
       where: {
         email: decoded.user.email,
-        loginType: 'email',
         isVerified: false,
       },
     });
@@ -187,18 +222,39 @@ export class AuthService {
     res: Response,
   ) {
     let user = await this.prisma.user.findUnique({
-      where: { googleId: profile.id },
+      where: { email: profile.email },
     });
 
     if (!user) {
-      user = await this.prisma.user.create({
-        data: {
-          googleId: profile.id,
-          email: profile.email,
-          name: profile.lastName + profile.firstName,
-          avatar: profile.picture,
-          loginType: 'google',
+      user = await this.prisma.$transaction(async (tx) => {
+        const newUser = await tx.user.create({
+          data: {
+            email: profile.email,
+            name: profile.lastName + profile.firstName,
+            avatar: profile.picture,
+          },
+        });
+
+        await tx.account.create({
+          data: {
+            provider: 'google',
+            providerId: profile.id,
+            userId: newUser.id,
+          },
+        });
+        return newUser;
+      });
+    } else {
+      await this.prisma.account.upsert({
+        where: {
+          provider_userId: { provider: 'google', userId: user.id },
         },
+        create: {
+          provider: 'google',
+          providerId: profile.id,
+          userId: user.id,
+        },
+        update: { providerId: profile.id },
       });
     }
 
@@ -231,20 +287,44 @@ export class AuthService {
     res: Response,
   ) {
     const { email, name, id, picture } = profile;
-    const user = await this.prisma.user.upsert({
-      where: { githubId: id },
-      update: {
-        name,
+    let user = await this.prisma.user.findUnique({
+      where: {
         email,
-        avatar: picture,
-      },
-      create: {
-        githubId: profile.id,
-        name,
-        email,
-        avatar: picture,
       },
     });
+
+    if (!user) {
+      user = await this.prisma.$transaction(async (tx) => {
+        const newUser = await tx.user.create({
+          data: {
+            email,
+            name,
+            avatar: picture,
+          },
+        });
+
+        await tx.account.create({
+          data: {
+            provider: 'github',
+            providerId: id,
+            userId: newUser.id,
+          },
+        });
+        return newUser;
+      });
+    } else {
+      await this.prisma.account.upsert({
+        where: {
+          provider_userId: { provider: 'github', userId: user.id },
+        },
+        create: {
+          provider: 'github',
+          providerId: id,
+          userId: user.id,
+        },
+        update: { providerId: id },
+      });
+    }
 
     const { access_token, refresh_token } = this.sendToken(user);
 
@@ -267,8 +347,8 @@ export class AuthService {
   }
 
   async loginUser(email: string, res: Response) {
-    const user = await this.prisma.user.findFirst({
-      where: { email, loginType: 'email', isVerified: true },
+    const user = await this.prisma.user.findUnique({
+      where: { email, isVerified: true },
     });
 
     if (!user) {
@@ -304,8 +384,8 @@ export class AuthService {
   };
 
   async forgotPassword(email: string) {
-    const userExist = await this.prisma.user.findFirstOrThrow({
-      where: { email, loginType: 'email' },
+    const userExist = await this.prisma.user.findUnique({
+      where: { email },
     });
 
     if (!userExist) {
@@ -315,8 +395,8 @@ export class AuthService {
     const resetToken = this.generateResetToken();
     const hashedToken = await this.hashResetToken(resetToken);
 
-    const updatedUser = await this.prisma.user.updateMany({
-      where: { email, loginType: 'email' },
+    const updatedUser = await this.prisma.user.update({
+      where: { email },
       data: {
         password_reset_token_hash: hashedToken,
         password_reset_expires_at: new Date(Date.now() + 3600000),
@@ -341,8 +421,8 @@ export class AuthService {
     token: string,
     newPassword: string,
   ): Promise<string> {
-    const user = await this.prisma.user.findFirst({
-      where: { email, loginType: 'email' },
+    const user = await this.prisma.user.findUnique({
+      where: { email },
     });
     if (
       !user ||
@@ -363,33 +443,46 @@ export class AuthService {
 
     const hashedPassword = await bcryptJs.hash(newPassword, 10);
 
-    await this.prisma.user.updateMany({
-      where: { email, loginType: 'email' },
-      data: { password: hashedPassword, password_reset_token_hash: null },
+    await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { email },
+        data: { password_reset_token_hash: null },
+      });
+
+      await tx.account.updateMany({
+        where: {
+          provider: 'email',
+          userId: user.id,
+        },
+        data: {
+          passwordHash: hashedPassword,
+        },
+      });
     });
+
     return 'Password is updated';
   }
 
-  async findOrCreateUser(profile: {
-    id: string;
-    username: string;
-    emails: { value: string }[];
-    photos: { value: string }[];
-  }) {
-    const user = await this.prisma.user.upsert({
-      where: { githubId: profile.id },
-      update: {
-        name: profile.username,
-        email: profile.emails?.[0]?.value,
-        avatar: profile.photos?.[0]?.value,
-      },
-      create: {
-        githubId: profile.id,
-        name: profile.username,
-        email: profile.emails?.[0]?.value,
-        avatar: profile.photos?.[0]?.value,
-      },
-    });
-    return user;
-  }
+  // async findOrCreateUser(profile: {
+  //   id: string;
+  //   username: string;
+  //   emails: { value: string }[];
+  //   photos: { value: string }[];
+  // }) {
+  //   const user = await this.prisma.user.upsert({
+  //     where: { githubId: profile.id },
+  //     update: {
+  //       name: profile.username,
+  //       email: profile.emails?.[0]?.value,
+  //       avatar: profile.photos?.[0]?.value,
+  //     },
+  //     create: {
+  //       githubId: profile.id,
+  //       name: profile.username,
+  //       email: profile.emails?.[0]?.value,
+  //       avatar: profile.photos?.[0]?.value,
+  //     },
+  //   });
+  //   return user;
+  // }
 }
