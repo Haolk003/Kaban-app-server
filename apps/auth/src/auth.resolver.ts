@@ -4,8 +4,6 @@ import { UseGuards } from '@nestjs/common';
 
 import { Request, Response } from 'express';
 
-import { User } from './entities/user.entity';
-
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import {
   LoginDto,
@@ -17,6 +15,7 @@ import {
 
 import { LoginResponse, RegisterResponse } from './types/user.type';
 import { AuthGuard } from './guards/auth.guard';
+import { User } from './entities/user.entity';
 
 @Resolver('Auth')
 export class AuthResolver {
@@ -51,13 +50,13 @@ export class AuthResolver {
     return response;
   }
 
-  @Query(() => User)
+  @Query(() => String)
   @UseGuards(AuthGuard)
   me(@Context() ctx: { req: Request }) {
     return ctx.req.me;
   }
 
-  @Mutation(() => User)
+  @Mutation(() => String)
   async forgotPassword(
     @Args('forgotPasswordInput') forgotPasswordDto: forgotPasswordDto,
   ) {

@@ -1,12 +1,93 @@
 version: '3.8'
 services:
+  api:
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile
+      target: builder
+    command: pnpm run start:dev api
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - '4000:4000' # Chỉ mở port cho Gateway
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - auth
+      - redis
+
+  auth:
+    build:
+      context: .
+      dockerfile: ./apps/auth/Dockerfile
+      target: builder
+    command: pnpm run start:dev auth
+    environment:
+      DATABASE_URL: 'postgresql://postgres:01653186782@host.docker.internal:5432/test?schema=public'
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    ports:
+      - '4001:4001'
+    env_file:
+      - .env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - postgres
+
+  user:
+    build:
+      context: .
+      dockerfile: ./apps/user/Dockerfile
+      target: builder
+    command: pnpm run start:dev user
+    environment:
+      DATABASE_URL: 'postgresql://postgres:01653186782@localhost:5432/test?schema=public'
+
+    ports:
+      - '4002:4002'
+    env_file:
+      - .env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+
   rabbitmq:
-    image: rabbitmq:3.12-management
+    image: rabbitmq:management
     container_name: rabbitmq
     restart: always
     ports:
       - '5672:5672' # Cổng AMQP để giao tiếp giữa các service
       - '15672:15672' # Cổng quản lý web RabbitMQ
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+      RABBITMQ_DEFAULT_USER: 'admin'
+      RABBITMQ_DEFAULT_PASS: 'admin'
+
+  postgres:
+    image: postgres:16
+    container_name: my_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: '01653186782'
+      POSTGRES_DB: 'test'
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:latest
+    container_name: my_redis
+    restart: always
+    ports:
+      - '6379:6379'
+
+volumes:
+  postgres_data:
+networks:
+  app-network:
+    driver: bridge

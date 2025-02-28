@@ -1,52 +1,109 @@
-import { ObjectType, Field } from '@nestjs/graphql';
+// user.entity.ts
+import { Field, ObjectType } from '@nestjs/graphql';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Unique,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+// import { Board, Account, BoardMember, Task, Discussion, UserTask, FileAttachment, TaskLike } from './';
 
 @ObjectType()
+@Entity()
 export class User {
   @Field()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Field()
+  @Column({ unique: true })
   email: string;
 
-  @Field(() => String, { nullable: true })
-  password?: string | null;
-
-  @Field()
-  loginType: string;
-
-  @Field(() => String, { nullable: true })
-  avatar?: string | null;
-
-  @Field()
+  @Column()
   name: string;
 
-  @Field(() => String, { nullable: true })
-  googleId?: string | null;
+  @Column({ nullable: true })
+  avatar: string;
 
-  @Field(() => String, { nullable: true })
-  githubId?: string | null;
-
-  @Field(() => String, { nullable: true })
-  password_reset_token_hash?: string | null;
-
-  @Field(() => String, { nullable: true })
-  password_reset_expires_at?: Date | null;
-
-  @Field(() => String, { nullable: true })
-  activation_code?: string | null;
-
-  @Field()
+  @Column({ default: false })
   isVerified: boolean;
 
-  @Field(() => String, { nullable: true })
-  verification_token?: string | null;
+  @Column({ nullable: true })
+  verification_token: string;
 
-  @Field(() => Date, { nullable: true })
-  verification_token_expires_at?: Date | null;
+  @Column({ nullable: true })
+  activation_code: string;
 
-  @Field()
+  @Column({ nullable: true })
+  verification_token_expires_at: Date;
+
+  @Column({ nullable: true })
+  password_reset_token_hash: string;
+
+  @Column({ nullable: true })
+  password_reset_expires_at: Date;
+
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Field()
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  //   @OneToMany(() => Board, board => board.owner)
+  //   boards: Board[];
+
+  @OneToMany(() => Account, (account) => account.user)
+  accounts: Account[];
+
+  //   @OneToMany(() => BoardMember, boardMember => boardMember.user)
+  //   boardMembers: BoardMember[];
+
+  //   @OneToMany(() => Task, task => task.assigner)
+  //   assignerTasks: Task[];
+
+  //   @OneToMany(() => Discussion, discussion => discussion.user)
+  //   taskDiscussions: Discussion[];
+
+  //   @OneToMany(() => UserTask, userTask => userTask.user)
+  //   userTasks: UserTask[];
+
+  //   @OneToMany(() => FileAttachment, attachment => attachment.uploadedBy)
+  //   attachments: FileAttachment[];
+
+  //   @OneToMany(() => TaskLike, like => like.user)
+  //   taskLikes: TaskLike[];
+}
+
+@Entity()
+@Unique(['provider', 'userId'])
+export class Account {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  userId: string;
+
+  @ManyToOne(() => User, (user) => user.accounts)
+  @JoinColumn({ name: 'userId' })
+  user: User;
+
+  @Column()
+  provider: string;
+
+  @Column({ nullable: true })
+  providerId: string;
+
+  @Column({ nullable: true })
+  passwordHash: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
   updatedAt: Date;
 }
