@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Int, Directive } from '@nestjs/graphql';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -13,29 +13,36 @@ import { Discussion } from './discussion.entity';
 import { User } from './user.entity';
 
 @ObjectType()
+@Directive('@key(fields: "id")')
 @Entity()
 export class FileAttachment {
   @Field(() => ID)
+  @Directive('@shareable')
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Field()
+  @Directive('@shareable')
   @Column()
   fileName: string;
 
   @Field()
+  @Directive('@shareable')
   @Column()
   filePath: string;
 
   @Field()
+  @Directive('@shareable')
   @Column()
   fileType: string;
 
   @Field(() => Int)
+  @Directive('@shareable')
   @Column()
   fileSize: number;
 
   @Field({ nullable: true })
+  @Directive('@shareable')
   @Column({ nullable: true })
   @Index()
   taskId?: string;
@@ -43,7 +50,8 @@ export class FileAttachment {
   @ManyToOne(() => Task, (task) => task.attachments, { nullable: true })
   task?: Task;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
+  @Directive('@shareable')
   @Column({ nullable: true })
   @Index()
   discussionId?: string;
@@ -54,17 +62,16 @@ export class FileAttachment {
   discussion?: Discussion;
 
   @Field()
+  @Directive('@shareable')
   @Column()
   uploadedById: string;
 
   @ManyToOne(() => User, (user) => user.attachments)
   uploadedBy: User;
 
-  @Field()
   @CreateDateColumn()
   createdAt: Date;
 
-  @Field()
   @UpdateDateColumn()
   updatedAt: Date;
 }

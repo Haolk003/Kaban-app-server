@@ -19,8 +19,20 @@ import { EmailModule, EmailService } from 'y/email';
 import { GithubStrategy } from './strategies/github.strategy';
 import { RabbitmqModule } from 'y/rabbitmq';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { CommonModule } from 'y/common';
+
 @Module({
   imports: [
+    CommonModule,
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 10000,
+          limit: 500,
+        },
+      ],
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,

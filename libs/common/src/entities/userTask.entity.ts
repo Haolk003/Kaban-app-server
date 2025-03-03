@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Directive } from '@nestjs/graphql';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -12,14 +12,17 @@ import { User } from './user.entity';
 import { Task } from './task.entity';
 
 @ObjectType()
+@Directive('@key(fields: "id")')
 @Entity()
 @Unique(['userId', 'taskId']) // Đảm bảo mỗi user chỉ có một task duy nhất
 export class UserTask {
   @Field(() => ID)
+  @Directive('@shareable')
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Field()
+  @Directive('@shareable')
   @Column()
   userId: string;
 
@@ -27,17 +30,16 @@ export class UserTask {
   user: User;
 
   @Field()
+  @Directive('@shareable')
   @Column()
   taskId: string;
 
   @ManyToOne(() => Task, (task) => task.assignedTo)
   task: Task;
 
-  @Field()
   @CreateDateColumn()
   createdAt: Date;
 
-  @Field()
   @UpdateDateColumn()
   updatedAt: Date;
 }

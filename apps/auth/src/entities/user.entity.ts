@@ -1,5 +1,5 @@
 // user.entity.ts
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Directive, Field, ObjectType } from '@nestjs/graphql';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 // import { Board, Account, BoardMember, Task, Discussion, UserTask, FileAttachment, TaskLike } from './';
 
+@Directive('@key(fields: "id")')
 @ObjectType()
 @Entity()
 export class User {

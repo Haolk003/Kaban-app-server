@@ -14,8 +14,9 @@ import {
 } from './dto/user.dto';
 
 import { LoginResponse, RegisterResponse } from './types/user.type';
-import { AuthGuard } from './guards/auth.guard';
-import { User } from './entities/user.entity';
+import { AuthGuard } from 'y/common/guards/auth.guard';
+import { User } from 'y/common/entities/user.entity';
+import { Throttle } from '@nestjs/throttler';
 
 @Resolver('Auth')
 export class AuthResolver {
@@ -35,6 +36,7 @@ export class AuthResolver {
     return this.authService.loginUser(loginDto.email, ctx.res);
   }
 
+  @Throttle({ default: { limit: 5, ttl: 100 } })
   @Mutation(() => RegisterResponse)
   async registerUser(@Args('registerDto') registerDto: RegisterDto) {
     const token = await this.authService.registerUser(registerDto);
@@ -50,7 +52,7 @@ export class AuthResolver {
     return response;
   }
 
-  @Query(() => String)
+  @Query(() => User)
   @UseGuards(AuthGuard)
   me(@Context() ctx: { req: Request }) {
     return ctx.req.me;

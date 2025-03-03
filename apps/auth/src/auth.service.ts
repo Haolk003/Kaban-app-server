@@ -11,8 +11,6 @@ import * as bcryptJs from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from 'y/email';
 
-import { User } from './entities/user.entity';
-
 import { Response } from 'express';
 
 import * as crypto from 'crypto';
@@ -31,8 +29,9 @@ export class AuthService {
   private sendToken(user: { email: string; id: string }) {
     const access_token = this.jwtService.sign(
       {
-        emai: user.email,
+        email: user.email,
         sub: user.id,
+        tokenType: 'accessToken',
       },
       {
         secret: this.configService.get<string>('ACCESS_TOKEN_KEY'),
@@ -43,7 +42,8 @@ export class AuthService {
     const refresh_token = this.jwtService.sign(
       {
         sub: user.id,
-        token_type: 'refresh',
+        email: user.email,
+        token_type: 'refreshToken',
       },
       {
         secret: this.configService.get<string>('REFRESH_TOKEN_KEY'),
@@ -263,6 +263,7 @@ export class AuthService {
       secure: false,
       httpOnly: true,
       sameSite: 'lax',
+      domain: 'localhost',
       maxAge: 1000 * 60 * 5,
       expires: new Date(Date.now() + 1000 * 60 * 5),
     });
@@ -271,6 +272,7 @@ export class AuthService {
       secure: false,
       httpOnly: true,
       sameSite: 'lax',
+      domain: 'localhost',
       maxAge: 1000 * 60 * 60 * 24,
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
@@ -333,6 +335,7 @@ export class AuthService {
       httpOnly: true,
       sameSite: 'lax',
       maxAge: 1000 * 60 * 5,
+      domain: 'localhost',
       expires: new Date(Date.now() + 1000 * 60 * 5),
     });
 
@@ -340,6 +343,7 @@ export class AuthService {
       secure: false,
       httpOnly: true,
       sameSite: 'lax',
+      domain: 'localhost',
       maxAge: 1000 * 60 * 60 * 24,
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
@@ -354,22 +358,25 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException();
     }
-    const { access_token, refresh_token } = this.sendToken(user);
+    const { access_token, refresh_token } = this.sendToken({
+      email: user.email,
+      id: user.id,
+    });
 
     res.cookie('accessToken', access_token, {
       secure: false,
       httpOnly: true,
       sameSite: 'lax',
       maxAge: 1000 * 60 * 5,
-      expires: new Date(Date.now() + 1000 * 60 * 5),
+      domain: 'localhost',
     });
 
     res.cookie('refreshToken', refresh_token, {
       secure: false,
       httpOnly: true,
       sameSite: 'lax',
+      domain: 'localhost',
       maxAge: 1000 * 60 * 60 * 24,
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
     return { access_token, refresh_token };
   }
