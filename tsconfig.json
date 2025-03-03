@@ -2,12 +2,10 @@
   "compilerOptions": {
     "typeRoots": [
       "./node_modules/@types",
-      "./src/types"
+      "./src/types",
+      "./libs/common/src/types"
     ],
-    "types": [
-      "node",
-      "express"
-    ],
+    "types": ["node", "express"],
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
@@ -26,36 +24,16 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "y/auth-library": [
-        "libs/auth-library/src"
-      ],
-      "y/auth-library/*": [
-        "libs/auth-library/src/*"
-      ],
-      "y/common": [
-        "libs/common/src"
-      ],
-      "y/common/*": [
-        "libs/common/src/*"
-      ],
-      "y/email": [
-        "libs/email/src"
-      ],
-      "y/email/*": [
-        "libs/email/src/*"
-      ],
-      "y/prisma": [
-        "libs/prisma/src"
-      ],
-      "y/prisma/*": [
-        "libs/prisma/src/*"
-      ],
-      "y/rabbitmq": [
-        "libs/rabbitmq/src"
-      ],
-      "y/rabbitmq/*": [
-        "libs/rabbitmq/src/*"
-      ]
+      "y/auth-library": ["libs/auth-library/src"],
+      "y/auth-library/*": ["libs/auth-library/src/*"],
+      "y/common": ["libs/common/src"],
+      "y/common/*": ["libs/common/src/*"],
+      "y/email": ["libs/email/src"],
+      "y/email/*": ["libs/email/src/*"],
+      "y/prisma": ["libs/prisma/src"],
+      "y/prisma/*": ["libs/prisma/src/*"],
+      "y/rabbitmq": ["libs/rabbitmq/src"],
+      "y/rabbitmq/*": ["libs/rabbitmq/src/*"]
     }
   }
 }

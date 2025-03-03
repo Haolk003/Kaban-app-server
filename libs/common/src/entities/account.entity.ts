@@ -10,42 +10,47 @@ import {
   Unique,
 } from 'typeorm';
 import { User } from './user.entity';
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Directive, Field, ID, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
+@Directive('@key(fields: "id")')
 @Entity()
 @Unique(['provider', 'userId'])
 export class Account {
-  @Field()
+  @Field(() => ID)
+  @Directive('@shareable')
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Field()
+  @Directive('@shareable')
   @Column()
   userId: string;
 
-  @Field()
+  @Field(() => User)
+  @Directive('@shareable')
   @ManyToOne(() => User, (user) => user.accounts)
   @JoinColumn({ name: 'userId' })
   user: User;
 
   @Field()
+  @Directive('@shareable')
   @Column()
   provider: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
+  @Directive('@shareable')
   @Column({ nullable: true })
   providerId?: string | null;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
+  @Directive('@shareable')
   @Column({ nullable: true })
   passwordHash?: string | null;
 
-  @Field()
   @CreateDateColumn()
   createdAt: Date;
 
-  @Field()
   @UpdateDateColumn()
   updatedAt: Date;
 }

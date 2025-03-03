@@ -59,7 +59,7 @@ model Board {
   owner       User     @relation(fields: [ownerId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  list        List[]
+  list        List[] 
   member BoardMember[]
 }
 
@@ -68,7 +68,7 @@ model BoardMember{
   userId      String
   user        User @relation(fields: [userId],references: [id])
   boardId     String
-  board       Board @relation(fields: [boardId],references: [id])
+  board       Board @relation(fields: [boardId],references: [id],onDelete: Cascade)
   role        String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -81,7 +81,7 @@ model List {
   name      String
   boardId   String
   order     Int
-  board     Board    @relation(fields: [boardId], references: [id])
+  board     Board    @relation(fields: [boardId], references: [id],onDelete:Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   task      Task[]
@@ -120,7 +120,7 @@ model Task {
   description   String
   orderId       Int
   listId        String
-  list          List @relation(fields: [listId], references: [id])
+  list          List @relation(fields: [listId], references: [id],onDelete: Cascade)
   assignerId    String?
   assigner      User? @relation(fields: [assignerId],references: [id],name: "assignerRelation")
   labels Label[]
@@ -146,7 +146,7 @@ model Subtask{
   description   String?
   isCompleted   Boolean   @default(false)
   taskId        String
-  task          Task      @relation(fields: [taskId],references: [id])
+  task          Task      @relation(fields: [taskId],references: [id],onDelete: Cascade)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   }
@@ -157,7 +157,7 @@ model Subtask{
     userId      String
     user        User      @relation(fields: [userId], references: [id])
     taskId      String
-    task        Task      @relation(fields: [taskId],references: [id])
+    task        Task      @relation(fields: [taskId],references: [id],onDelete: Cascade)
      attachments FileAttachment[]
     createdAt   DateTime  @default(now())
     updatedAt   DateTime  @updatedAt 
@@ -168,7 +168,7 @@ model Subtask{
     userId      String
     user        User     @relation(fields: [userId],references: [id])
     taskId      String
-    task        Task     @relation(fields: [taskId],references: [id])
+    task        Task     @relation(fields: [taskId],references: [id],onDelete: Cascade)
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 
@@ -182,9 +182,9 @@ model  FileAttachment{
   fileType      String
   fileSize      Int
   taskId        String
-  task          Task?       @relation(fields: [taskId],references: [id])
+  task          Task?       @relation(fields: [taskId],references: [id],onDelete: Cascade)
   discussionId  String    
-  discussion    Discussion? @relation(fields: [discussionId],references: [id])
+  discussion    Discussion? @relation(fields: [discussionId],references: [id],onDelete: Cascade)
   uploadedById  String
   uploadedBy   User         @relation(fields: [uploadedById], references: [id])
   createdAt     DateTime    @default(now())

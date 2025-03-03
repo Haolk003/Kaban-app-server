@@ -1,9 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { ApiModule } from './api.module';
+import * as cookieParser from 'cookie-parser';
 // import { Transport } from '@nestjs/microservices';
 async function bootstrap() {
   const app = await NestFactory.create(ApiModule);
 
+  app.use(cookieParser());
+
+  app.enableCors({
+    origin: 'http://localhost:4001',
+    credentials: true,
+  });
   // app.connectMicroservice({
   //   transport: Transport.RMQ,
   //   options: {

@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Directive } from '@nestjs/graphql';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -13,17 +13,21 @@ import { Task } from './task.entity';
 import { FileAttachment } from './file-attachment.entity';
 
 @ObjectType()
+@Directive('@key(fields: "id")')
 @Entity()
 export class Discussion {
   @Field(() => ID)
+  @Directive('@shareable')
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Field()
+  @Directive('@shareable')
   @Column()
   content: string;
 
   @Field()
+  @Directive('@shareable')
   @Column()
   userId: string;
 
@@ -33,6 +37,7 @@ export class Discussion {
   user: User;
 
   @Field()
+  @Directive('@shareable')
   @Column()
   taskId: string;
 
@@ -40,16 +45,15 @@ export class Discussion {
   task: Task;
 
   @Field(() => [FileAttachment], { nullable: true })
+  @Directive('@shareable')
   @OneToMany(() => FileAttachment, (attachment) => attachment.discussion, {
     cascade: true,
   })
   attachments?: FileAttachment[];
 
-  @Field()
   @CreateDateColumn()
   createdAt: Date;
 
-  @Field()
   @UpdateDateColumn()
   updatedAt: Date;
 }

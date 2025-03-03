@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Directive } from '@nestjs/graphql';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -10,36 +10,40 @@ import {
 import { Task } from './task.entity';
 
 @ObjectType()
+@Directive('@key(fields: "id")')
 @Entity()
 export class Subtask {
   @Field(() => ID)
+  @Directive('@shareable')
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Field()
+  @Directive('@shareable')
   @Column()
   title: string;
 
   @Field({ nullable: true })
+  @Directive('@shareable')
   @Column({ nullable: true })
   description?: string;
 
   @Field()
+  @Directive('@shareable')
   @Column({ default: false })
   isCompleted: boolean;
 
   @Field()
+  @Directive('@shareable')
   @Column()
   taskId: string;
 
   @ManyToOne(() => Task, (task) => task.subTasks, { onDelete: 'CASCADE' })
   task: Task;
 
-  @Field()
   @CreateDateColumn()
   createdAt: Date;
 
-  @Field()
   @UpdateDateColumn()
   updatedAt: Date;
 }

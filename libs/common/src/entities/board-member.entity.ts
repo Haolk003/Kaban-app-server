@@ -5,40 +5,42 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
-  Unique,
-  Index,
   UpdateDateColumn,
+  Unique,
 } from 'typeorm';
 import { User } from './user.entity';
-import { Task } from './task.entity';
+import { Board } from './board.entity';
 
 @ObjectType()
 @Directive('@key(fields: "id")')
 @Entity()
-@Unique(['userId', 'taskId']) // Đảm bảo mỗi người chỉ like một task một lần
-export class TaskLike {
+@Unique(['userId', 'boardId']) // Đảm bảo mỗi người dùng chỉ có một vai trò trong một bảng
+export class BoardMember {
   @Field(() => ID)
   @Directive('@shareable')
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Field()
+  @Field(() => String)
   @Directive('@shareable')
   @Column()
-  @Index()
   userId: string;
 
-  @ManyToOne(() => User, (user) => user.taskLikes, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.boardMembers, { onDelete: 'CASCADE' })
   user: User;
 
-  @Field()
+  @Field(() => String)
   @Directive('@shareable')
   @Column()
-  @Index()
-  taskId: string;
+  boardId: string;
 
-  @ManyToOne(() => Task, (task) => task.likes, { onDelete: 'CASCADE' })
-  task: Task;
+  @ManyToOne(() => Board, (board) => board.member, { onDelete: 'CASCADE' })
+  board: Board;
+
+  @Directive('@shareable')
+  @Field()
+  @Column()
+  role: string;
 
   @CreateDateColumn()
   createdAt: Date;
