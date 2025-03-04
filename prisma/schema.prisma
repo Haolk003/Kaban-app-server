@@ -60,6 +60,7 @@ model Board {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   list        List[] 
+  labels      Label[]
   member BoardMember[]
 }
 
@@ -75,28 +76,29 @@ model BoardMember{
 
    @@unique([userId, boardId]) // Đảm bảo mỗi người dùng chỉ có một vai trò trong một bảng
 }
-
+ 
 model List {
   id        String   @id @default(cuid())
   name      String
   boardId   String
   order     Int
+  status    String
   board     Board    @relation(fields: [boardId], references: [id],onDelete:Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   task      Task[]
 }
 
-model TaskStatus{
-  id    String @id @default(cuid())
-  name  String @unique
-  tasks Task[] 
-}
+
 
 model Label {
   id String @id @default(cuid())
-  name String @unique
+  name String
+  boardId String 
+  board  Board @relation(fields: [boardId],references: [id])
   tasks Task[]
+
+  @@unique([name,boardId])
 }
 
 model TaskLike {
@@ -126,8 +128,6 @@ model Task {
   labels Label[]
   startDate     DateTime?
   dueDate       DateTime?
-  statusId        String
-  status    TaskStatus @relation(fields:[statusId],references: [id])
   subTask       Subtask[]
   discussion    Discussion[]
   assignedTo    UserTask[]
@@ -188,7 +188,7 @@ model  FileAttachment{
   uploadedById  String
   uploadedBy   User         @relation(fields: [uploadedById], references: [id])
   createdAt     DateTime    @default(now())
-  updated       DateTime    @updatedAt
+  updatedAt      DateTime    @updatedAt
 
   @@index([taskId]) // tao index cho taskId
   @@index([discussionId]) // tao index cho discussionId

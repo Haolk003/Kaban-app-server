@@ -18,6 +18,7 @@ import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
           subgraphs: [
             { name: 'auth', url: 'http://localhost:4001/graphql' },
             { name: 'board', url: 'http://localhost:4003/graphql' },
+            { name: 'task', url: 'http://localhost:4004/graphql' },
           ],
         }),
         buildService: ({ url }) => {

@@ -13,6 +13,7 @@ import { User } from './user.entity';
 
 import { List } from './list.entity';
 import { BoardMember } from './board-member.entity';
+import { Label } from './label.entity';
 
 @ObjectType()
 @Directive('@key(fields: "id")')
@@ -59,4 +60,9 @@ export class Board {
   @Field(() => [List])
   @OneToMany(() => List, (list) => list.board)
   list: List[];
+
+  @Directive('@shareable')
+  @Field(() => [List])
+  @OneToMany(() => Label, (label) => label.board)
+  labels: Label[];
 }

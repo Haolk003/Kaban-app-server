@@ -59,6 +59,7 @@ export class BoardService {
             name,
             order: index + 1,
             boardId: board.id,
+            status: name,
           })),
         });
 

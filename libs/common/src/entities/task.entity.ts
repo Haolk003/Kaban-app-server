@@ -17,7 +17,7 @@ import { FileAttachment } from './file-attachment.entity';
 import { Discussion } from './discussion.entity';
 import { Subtask } from './subtask.entity';
 import { Label } from './label.entity';
-import { TaskStatus } from './task-status.entity';
+
 import { TaskLike } from './task-like.entity';
 
 @ObjectType()
@@ -100,9 +100,6 @@ export class Task {
   @Directive('@shareable')
   @Column()
   statusId: string;
-
-  @ManyToOne(() => TaskStatus, (status) => status.tasks)
-  status: TaskStatus;
 
   @Field(() => [TaskLike])
   @Directive('@shareable')
