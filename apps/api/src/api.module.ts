@@ -41,6 +41,10 @@ import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                 context.res.setHeader('Set-Cookie', cookie);
               }
+              if (response.errors) {
+                // Chuyển đổi lỗi sang định dạng GraphQL
+                response.data = { ...response.data, errors: response.errors };
+              }
               return response;
             },
           });

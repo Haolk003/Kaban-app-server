@@ -19,6 +19,7 @@ import { Subtask } from './subtask.entity';
 import { Label } from './label.entity';
 
 import { TaskLike } from './task-like.entity';
+import { Priority } from '../enum/priority.enum';
 
 @ObjectType()
 @Directive('@key(fields: "id")')
@@ -96,10 +97,9 @@ export class Task {
   @OneToMany(() => Label, (label) => label.tasks)
   labels: Label[];
 
-  @Field()
+  @Field(() => Priority)
   @Directive('@shareable')
-  @Column()
-  statusId: string;
+  priority: Priority;
 
   @Field(() => [TaskLike])
   @Directive('@shareable')

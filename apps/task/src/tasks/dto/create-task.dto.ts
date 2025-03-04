@@ -1,21 +1,30 @@
-import { IsAlpha, IsArray, IsOptional, IsString } from 'class-validator';
+import { Field, InputType } from '@nestjs/graphql';
+import { IsArray, IsOptional, IsString, IsUUID } from 'class-validator';
 
+@InputType()
 export class CreateTaskDto {
+  @Field()
   @IsString()
   title: string;
 
+  @Field()
   @IsString()
   @IsOptional()
   description?: string;
 
+  @Field()
   @IsString()
   listId: string;
 
-  @IsString()
-  @IsOptional()
-  assignerId?: string;
-
+  @Field(() => [String], { nullable: true })
   @IsArray()
+  @IsUUID('4', { each: true })
+  @IsOptional()
+  assignedTo?: string[];
+
+  @Field(() => [String], { nullable: true })
+  @IsArray()
+  @IsUUID('4', { each: true })
   @IsOptional()
   labelIds?: string[];
 }

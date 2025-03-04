@@ -15,6 +15,8 @@ import { TaskResolver } from './tasks/task.resolver';
 import { LabelService } from './labels/label.service';
 import { JwtService } from '@nestjs/jwt';
 import { LabelModule } from './labels/label.module';
+import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter';
+import { APP_FILTER } from '@nestjs/core';
 @Module({
   imports: [
     LabelModule,
@@ -47,6 +49,7 @@ import { LabelModule } from './labels/label.module';
     TaskResolver,
     LabelService,
     JwtService,
+    { provide: APP_FILTER, useClass: GlobalExceptionFilter },
   ],
 })
 export class TaskModule {}

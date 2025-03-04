@@ -76,6 +76,12 @@ model BoardMember{
 
    @@unique([userId, boardId]) // Đảm bảo mỗi người dùng chỉ có một vai trò trong một bảng
 }
+
+enum Priority {
+  low
+  medium
+  high
+}
  
 model List {
   id        String   @id @default(cuid())
@@ -133,6 +139,7 @@ model Task {
   assignedTo    UserTask[]
   attachments FileAttachment[]
   likes         TaskLike[]
+  priority    Priority @default(medium)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

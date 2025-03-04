@@ -11,11 +11,15 @@ import { CreateLabelDto } from './dto/create-label.dto';
 import { UpdateLabelDto } from './dto/update-label.dto';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import { Prisma, PrismaClient } from '@prisma/client';
+import { ErrorHandlerService } from 'y/common/service/error-hander.service';
 
 @Injectable()
 export class LabelService {
   private readonly logger = new Logger(LabelService.name);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly errorHandler: ErrorHandlerService,
+  ) {}
 
   async createLabel(createLabelDto: CreateLabelDto, userId: string) {
     const { boardId, name } = createLabelDto;
@@ -35,10 +39,9 @@ export class LabelService {
         this.logger.log(`Label created: ${label.id}`);
         return label;
       });
-    } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      this.logger.error(`Failed to create label:${error.message}`);
-      throw error;
+    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      this.errorHandler.handleError(error, 'TaskService.getTask');
     }
   }
 
@@ -68,9 +71,7 @@ export class LabelService {
         return updatedLabel;
       });
     } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      this.logger.error(`Failed to update label:${error.message}`);
-      throw error;
+      this.errorHandler.handleError(error, 'TaskService.getTask');
     }
   }
 
@@ -106,9 +107,7 @@ export class LabelService {
         return deletedLabel;
       });
     } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      this.logger.error(`Failed to delete label:${error.message}`);
-      throw error;
+      this.errorHandler.handleError(error, 'TaskService.getTask');
     }
   }
 
