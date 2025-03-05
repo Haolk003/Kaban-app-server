@@ -21,6 +21,8 @@ import { RabbitmqModule } from 'y/rabbitmq';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CommonModule } from 'y/common';
+import { APP_FILTER } from '@nestjs/core';
+import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter';
 
 @Module({
   imports: [
@@ -76,6 +78,7 @@ import { CommonModule } from 'y/common';
     LocalStrategy,
     GithubStrategy,
     JwtStrategy,
+    { provide: APP_FILTER, useClass: GlobalExceptionFilter },
   ],
 })
 export class AuthModule {}

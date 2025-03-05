@@ -9,6 +9,8 @@ import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 import { AddMemberDto } from './dto/add-member-board.dto';
 import { EmailService } from 'y/email';
+
+import { generateProjectKey } from './utils/project-key.generator';
 @Injectable()
 export class BoardService {
   private readonly logger = new Logger(BoardService.name);
@@ -32,12 +34,17 @@ export class BoardService {
         if (!owner) {
           throw new NotFoundException('User not found');
         }
-
+        const projectKey = await generateProjectKey(
+          tx,
+          createBoardDto.title,
+          owner.id,
+        );
         const board = await tx.board.create({
           data: {
             title: createBoardDto.title,
             description: createBoardDto.description || '',
             ownerId: createBoardDto.ownerId,
+            projectKey: projectKey,
             member: {
               create: {
                 userId: createBoardDto.ownerId,
@@ -59,6 +66,7 @@ export class BoardService {
             name,
             order: index + 1,
             boardId: board.id,
+            status: name,
           })),
         });
 

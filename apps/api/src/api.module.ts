@@ -18,6 +18,7 @@ import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
           subgraphs: [
             { name: 'auth', url: 'http://localhost:4001/graphql' },
             { name: 'board', url: 'http://localhost:4003/graphql' },
+            { name: 'task', url: 'http://localhost:4004/graphql' },
           ],
         }),
         buildService: ({ url }) => {
@@ -39,6 +40,10 @@ import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
               if (cookie && context.res) {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                 context.res.setHeader('Set-Cookie', cookie);
+              }
+              if (response.errors) {
+                // Chuyển đổi lỗi sang định dạng GraphQL
+                response.data = { ...response.data, errors: response.errors };
               }
               return response;
             },

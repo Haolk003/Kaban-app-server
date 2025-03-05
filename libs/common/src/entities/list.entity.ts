@@ -47,6 +47,11 @@ export class List {
   @Column()
   order: number;
 
+  @Field()
+  @Directive('@shareable')
+  @Column()
+  status: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
