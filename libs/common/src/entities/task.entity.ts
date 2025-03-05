@@ -20,6 +20,7 @@ import { Label } from './label.entity';
 
 import { TaskLike } from './task-like.entity';
 import { Priority } from '../enum/priority.enum';
+import { Board } from './board.entity';
 
 @ObjectType()
 @Directive('@key(fields: "id")')
@@ -36,6 +37,11 @@ export class Task {
   @Directive('@shareable')
   @Column()
   taskId: string;
+
+  @Field(() => Number)
+  @Directive('@shareable')
+  @Column()
+  taskNumber: number;
 
   @Field()
   @Directive('@shareable')
@@ -60,6 +66,14 @@ export class Task {
 
   @ManyToOne(() => List, (list) => list.task)
   list: List;
+
+  @Field(() => String)
+  @Directive('@shareable')
+  @Column()
+  boardId: string;
+
+  @ManyToOne(() => Board, (board) => board.tasks)
+  board: Task[];
 
   @Field(() => String, { nullable: true })
   @Directive('@shareable')

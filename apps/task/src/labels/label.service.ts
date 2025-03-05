@@ -106,8 +106,8 @@ export class LabelService {
         this.logger.log(`Label deleted: ${deletedLabel.id}`);
         return deletedLabel;
       });
-    } catch (error: any) {
-      this.errorHandler.handleError(error, 'TaskService.getTask');
+    } catch (error) {
+      this.errorHandler.handleError(error as Error, 'TaskService.getTask');
     }
   }
 

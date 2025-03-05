@@ -17,9 +17,12 @@ import { JwtService } from '@nestjs/jwt';
 import { LabelModule } from './labels/label.module';
 import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter';
 import { APP_FILTER } from '@nestjs/core';
+import { SubTaskService } from './subtasks/subTask.service';
+import { SubTaskModule } from './subtasks/subTask.module';
 @Module({
   imports: [
     LabelModule,
+    SubTaskModule,
     CommonModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
@@ -49,6 +52,7 @@ import { APP_FILTER } from '@nestjs/core';
     TaskResolver,
     LabelService,
     JwtService,
+    SubTaskService,
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
   ],
 })

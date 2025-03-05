@@ -54,6 +54,7 @@ model Account {
 model Board {
   id          String   @id @default(cuid())
   title       String
+  projectKey  String
   description String?
   ownerId     String
   owner       User     @relation(fields: [ownerId], references: [id])
@@ -61,7 +62,18 @@ model Board {
   updatedAt   DateTime @updatedAt
   list        List[] 
   labels      Label[]
+  tasks       Task[]
   member BoardMember[]
+
+  @@unique([projectKey,ownerId])
+  @@unique([title,ownerId])
+}
+
+enum Member {
+MEMBER
+ADMIN
+OWNER
+VIEWER
 }
 
 model BoardMember{
@@ -70,7 +82,7 @@ model BoardMember{
   user        User @relation(fields: [userId],references: [id])
   boardId     String
   board       Board @relation(fields: [boardId],references: [id],onDelete: Cascade)
-  role        String
+  role        Member @default(MEMBER)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -123,15 +135,18 @@ model TaskLike {
 
 model Task {
   id            String   @id @default(cuid())
-  taskId        String
+  taskId        String 
+  taskNumber    Int
   title         String
-  description   String
+  description   String?
   orderId       Int
   listId        String
   list          List @relation(fields: [listId], references: [id],onDelete: Cascade)
   assignerId    String?
   assigner      User? @relation(fields: [assignerId],references: [id],name: "assignerRelation")
-  labels Label[]
+  boardId       String
+  board         Board @relation(fields: [boardId],references: [id])
+  labels    Label[]
   startDate     DateTime?
   dueDate       DateTime?
   subTask       Subtask[]
@@ -143,8 +158,11 @@ model Task {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+
   @@index([listId]) // Thêm index cho listId
   @@index([assignerId]) // Thêm index cho assignerId
+  @@index([boardId, taskNumber])
+  @@index([taskId])
 }
 
 model Subtask{
