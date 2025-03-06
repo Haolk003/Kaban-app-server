@@ -11,6 +11,8 @@ import { AddMemberDto } from './dto/add-member-board.dto';
 import { EmailService } from 'y/email';
 
 import { generateProjectKey } from './utils/project-key.generator';
+import { ErrorHandlerService } from 'y/common/service/error-hander.service';
+
 @Injectable()
 export class BoardService {
   private readonly logger = new Logger(BoardService.name);
@@ -18,11 +20,8 @@ export class BoardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
+    private readonly errorHandler: ErrorHandlerService,
   ) {}
-
-  getHello(): string {
-    return 'Hello World!';
-  }
 
   async createBoard(createBoardDto: CreateBoardDto) {
     try {
@@ -73,10 +72,8 @@ export class BoardService {
         this.logger.log(`Board created: ${board.id}`);
         return board;
       });
-    } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      this.logger.error(`Failed to create board: ${error.message}`);
-      throw error;
+    } catch (error) {
+      this.errorHandler.handleError(error as Error, 'BoardService.createBoard');
     }
   }
 
@@ -108,9 +105,8 @@ export class BoardService {
 
       this.logger.log(`Board updated: ${board.id}`);
       return board;
-    } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      this.logger.error(`Failed to update board: ${error.message}`);
+    } catch (error) {
+      this.errorHandler.handleError(error as Error, 'BoardService.updateBoard');
     }
   }
 
@@ -157,7 +153,7 @@ export class BoardService {
         data: {
           boardId,
           userId: memberId,
-          role,
+          role: role,
         },
         include: {
           board: true,
@@ -179,9 +175,7 @@ export class BoardService {
       });
       return member;
     } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      this.logger.error(`Failed to add member: ${error.message}`);
-      throw error;
+      this.errorHandler.handleError(error as Error, 'BoardService.addMember');
     }
   }
 
@@ -205,9 +199,10 @@ export class BoardService {
 
       return `Member ${memberId} removed from board ${boardId}`;
     } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      this.logger.error(`Failed to remove member: ${error.message}`);
-      throw error;
+      this.errorHandler.handleError(
+        error as Error,
+        'BoardService.deleteMember',
+      );
     }
   }
 
@@ -231,9 +226,7 @@ export class BoardService {
 
       return `Board ${boardId} deleted`;
     } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      this.logger.error(`Failed to delete board: ${error.message}`);
-      throw error;
+      this.errorHandler.handleError(error as Error, 'BoardService.deleteBoard');
     }
   }
 }

@@ -105,6 +105,9 @@ model List {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   task      Task[]
+
+  @@unique([boardId,name])
+  @@unique([boardId,status])
 }
 
 
@@ -113,7 +116,7 @@ model Label {
   id String @id @default(cuid())
   name String
   boardId String 
-  board  Board @relation(fields: [boardId],references: [id])
+  board  Board @relation(fields: [boardId],references: [id],onDelete:Cascade)
   tasks Task[]
 
   @@unique([name,boardId])
