@@ -12,5 +12,6 @@ export class CreateListDto {
   boardId: string;
 
   @Field(() => String, { nullable: true })
+  @IsString()
   status?: string;
 }
