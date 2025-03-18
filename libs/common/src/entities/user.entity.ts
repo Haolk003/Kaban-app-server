@@ -17,6 +17,8 @@ import { Discussion } from './discussion.entity';
 import { TaskLike } from './task-like.entity';
 import { BoardMember } from './board-member.entity';
 
+import GraphQLJSON from 'graphql-type-json';
+
 @Directive('@key(fields: "id")')
 @ObjectType()
 @Entity()
@@ -36,15 +38,31 @@ export class User {
   @Column()
   name: string;
 
-  @Field(() => String, { nullable: true })
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  @Field(() => GraphQLJSON, { nullable: true })
   @Directive('@shareable')
   @Column({ nullable: true })
-  avatar?: string;
+  avatar?: typeof GraphQLJSON;
 
   @Field({ defaultValue: false })
   @Directive('@shareable')
   @Column({ default: false })
   isVerified: boolean;
+
+  @Field()
+  @Directive('@shareable')
+  @Column({ nullable: true })
+  bio?: string;
+
+  @Field()
+  @Directive('@shareable')
+  @Column({ nullable: true })
+  location?: string;
+
+  @Field()
+  @Directive('@shareable')
+  @Column({ nullable: true })
+  jobName?: string;
 
   @HideField()
   @Column({ nullable: true })

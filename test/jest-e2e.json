@@ -13,6 +13,8 @@
   "moduleNameMapper": {
     "y/auth-library": "<rootDir>/../libs/auth-library/src",
     "y/auth-library/(.*)": "<rootDir>/../libs/auth-library/src/$1",
+    "y/cloudinary": "<rootDir>/../libs/cloudinary/src",
+    "y/cloudinary/(.*)": "<rootDir>/../libs/cloudinary/src/$1",
     "y/common": "<rootDir>/../libs/common/src",
     "y/common/(.*)": "<rootDir>/../libs/common/src/$1",
     "y/email": "<rootDir>/../libs/email/src",

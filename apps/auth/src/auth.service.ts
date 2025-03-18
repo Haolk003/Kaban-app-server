@@ -16,6 +16,7 @@ import { Response } from 'express';
 
 import * as crypto from 'crypto';
 import { ErrorHandlerService } from 'y/common/service/error-hander.service';
+import { UpdateProfileDto } from './dto/user.dto';
 
 @Injectable()
 export class AuthService {
@@ -359,7 +360,7 @@ export class AuthService {
       res.cookie('accessToken', access_token, {
         secure: false,
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'strict',
         maxAge: 1000 * 60 * 5,
         domain: 'localhost',
         expires: new Date(Date.now() + 1000 * 60 * 5),
@@ -368,7 +369,7 @@ export class AuthService {
       res.cookie('refreshToken', refresh_token, {
         secure: false,
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'strict',
         domain: 'localhost',
         maxAge: 1000 * 60 * 60 * 24,
         expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
@@ -401,7 +402,7 @@ export class AuthService {
       res.cookie('accessToken', access_token, {
         secure: false,
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'strict',
         maxAge: 1000 * 60 * 5,
         domain: 'localhost',
       });
@@ -409,7 +410,7 @@ export class AuthService {
       res.cookie('refreshToken', refresh_token, {
         secure: false,
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'strict',
         domain: 'localhost',
         maxAge: 1000 * 60 * 60 * 24,
       });
@@ -518,6 +519,27 @@ export class AuthService {
       return 'Password is updated';
     } catch (error) {
       this.errorHander.handleError(error as Error, 'AuthService.resetPassword');
+    }
+  }
+
+  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+    try {
+      const findUserAndUpdate = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          name: updateProfileDto.name,
+          bio: updateProfileDto.bio,
+          avatar: updateProfileDto.avatar
+            ? { ...updateProfileDto.avatar }
+            : undefined,
+          jobName: updateProfileDto.jobName,
+          location: updateProfileDto.location,
+        },
+      });
+
+      return findUserAndUpdate;
+    } catch (error) {
+      this.errorHander.handleError(error as Error, 'AuthService.updateProfile');
     }
   }
 

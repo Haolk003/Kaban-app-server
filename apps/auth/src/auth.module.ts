@@ -24,9 +24,11 @@ import { CommonModule } from 'y/common';
 import { APP_FILTER } from '@nestjs/core';
 import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter';
 
+import { CloudinaryService, CloudinaryModule } from 'y/cloudinary';
+
 @Module({
   imports: [
-    CommonModule,
+    CloudinaryModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -54,7 +56,7 @@ import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter'
       },
       sortSchema: true,
       playground: true,
-      introspection: true,
+
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       context: ({ req, res }) => ({ req, res }),
     }),
@@ -66,6 +68,8 @@ import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter'
         signOptions: { expiresIn: '1h' },
       }),
     }),
+
+    CommonModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -78,6 +82,7 @@ import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter'
     LocalStrategy,
     GithubStrategy,
     JwtStrategy,
+    CloudinaryService,
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
   ],
 })

@@ -13,17 +13,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+
 model User {
   id                            String    @id @default(cuid())
   email                         String   @unique 
   name                          String
-  avatar                        String?
+  avatar                        Json?  
   isVerified                    Boolean   @default(false)
   verification_token            String?
   activation_code               String?
   verification_token_expires_at DateTime?
   password_reset_token_hash     String?
   password_reset_expires_at     DateTime?
+  bio                           String?
+  location                       String?
+  jobName                       String?
   createdAt                     DateTime  @default(now())
   updatedAt                     DateTime  @updatedAt
   board                         Board[]

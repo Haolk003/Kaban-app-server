@@ -59,7 +59,13 @@ export class AuthGuard implements CanActivate {
 
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
-        select: { id: true, email: true },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          avatar: true,
+          board: true,
+        },
       });
 
       // if (!user) {
@@ -97,7 +103,13 @@ export class AuthGuard implements CanActivate {
 
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
-        select: { id: true, email: true },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          avatar: true,
+          board: true,
+        },
       });
 
       if (!user) {

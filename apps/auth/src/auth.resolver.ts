@@ -5,12 +5,14 @@ import { UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import {} from 'graphql';
 import {
   LoginDto,
   RegisterDto,
   ActivateUserDto,
   forgotPasswordDto,
   resetPasswordDto,
+  UpdateProfileDto,
 } from './dto/user.dto';
 
 import { LoginResponse, RegisterResponse } from './types/user.type';
@@ -80,4 +82,42 @@ export class AuthResolver {
     );
     return response;
   }
+
+  @Mutation(() => String)
+  @UseGuards(AuthGuard)
+  logoutUser(@Context() ctx: { res: Response }) {
+    ctx.res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      maxAge: 15 * 60 * 1000, // 15 phút
+      domain: 'localhost',
+    });
+
+    ctx.res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      maxAge: 15 * 60 * 1000, // 15 phút
+      domain: 'localhost',
+    });
+    return 'Loggout successfully';
+  }
+
+  @Mutation(() => User)
+  @UseGuards(AuthGuard)
+  async updateProfile(
+    @Context() ctx: { req: Request },
+    @Args('updateProfileDto') updateProfileDto: UpdateProfileDto,
+  ) {
+    const { id: userId } = ctx.req.me as { id: string; email: string };
+    const response = await this.authService.updateProfile(
+      userId,
+      updateProfileDto,
+    );
+    return response;
+  }
+
+  // @Mutation(()=>String)
+  // async uploadFile(@Args({name:'file',type:()=>GraphQl}))
 }
