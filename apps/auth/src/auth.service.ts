@@ -250,7 +250,7 @@ export class AuthService {
             data: {
               email: profile.email,
               name: profile.lastName + profile.firstName,
-              avatar: profile.picture,
+              avatar: { public_id: null, url: profile.picture },
             },
           });
 

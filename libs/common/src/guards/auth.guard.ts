@@ -65,12 +65,11 @@ export class AuthGuard implements CanActivate {
           name: true,
           avatar: true,
           board: true,
+          bio: true,
+          location: true,
+          jobName: true,
         },
       });
-
-      // if (!user) {
-      //   throw new UnauthorizedException(AuthError.ACCOUNT_INACTIVE);
-      // }
 
       if (!user) {
         throw new UnauthorizedException(AuthError.ACCOUNT_NOT_FOUND);
@@ -109,6 +108,9 @@ export class AuthGuard implements CanActivate {
           name: true,
           avatar: true,
           board: true,
+          bio: true,
+          location: true,
+          jobName: true,
         },
       });
 

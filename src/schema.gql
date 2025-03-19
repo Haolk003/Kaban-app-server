@@ -20,7 +20,10 @@ directive @inaccessible on ARGUMENT_DEFINITION | ENUM | ENUM_VALUE | FIELD_DEFIN
 """
 Designates an object type as an entity and specifies its key fields. Key fields are a set of fields that a subgraph can use to uniquely identify any instance of the entity.
 """
-directive @key(fields: String!, resolvable: Boolean = true) repeatable on INTERFACE | OBJECT
+directive @key(
+  fields: String!
+  resolvable: Boolean = true
+) repeatable on INTERFACE | OBJECT
 
 """
 This directive links definitions from an external specification to this schema.
@@ -50,7 +53,9 @@ directive @shareable on FIELD_DEFINITION | OBJECT
 """
 Applies arbitrary string metadata to a schema location. Custom tooling can use this metadata during any step of the schema delivery flow, including composition, static analysis, and documentation. The GraphOS Enterprise contracts feature uses @tag with its inclusion and exclusion filters.
 """
-directive @tag(name: String!) repeatable on ARGUMENT_DEFINITION | ENUM | ENUM_VALUE | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | INPUT_OBJECT | INTERFACE | OBJECT | SCALAR | SCHEMA | UNION
+directive @tag(
+  name: String!
+) repeatable on ARGUMENT_DEFINITION | ENUM | ENUM_VALUE | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | INPUT_OBJECT | INTERFACE | OBJECT | SCALAR | SCHEMA | UNION
 
 type Account {
   createdAt: DateTime!
@@ -139,4 +144,9 @@ input resetPasswordDto {
   email: String!
   newPassword: String!
   token: String!
+}
+
+input AvatarDtoInput {
+  url: String!
+  public_id: String!
 }

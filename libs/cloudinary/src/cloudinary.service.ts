@@ -44,6 +44,40 @@ export class CloudinaryService {
     });
   }
 
+  /** ✅ Upload riêng Avatar - Optimize cho ảnh đại diện */
+  async uploadAvatar(
+    file: UploadFile,
+    folder: string = 'avatars',
+  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder,
+          resource_type: 'image',
+          allowed_formats: ['jpg', 'png', 'jpeg'],
+          transformation: [
+            { width: 300, height: 300, crop: 'thumb', gravity: 'face' }, // Crop vào mặt
+            { quality: 'auto:eco' }, // Nén tối ưu
+            { fetch_format: 'auto' }, // Tự động chọn định dạng
+          ],
+        },
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        (error, result) => {
+          if (error) {
+            // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+            return reject(error);
+          }
+          if (!result) {
+            return reject(new Error('Upload result is undefined'));
+          }
+          return resolve(result);
+        },
+      );
+
+      Readable.from(file.buffer).pipe(uploadStream);
+    });
+  }
+
   async deleteFile(publicId: string): Promise<void> {
     await cloudinary.uploader.destroy(publicId);
   }

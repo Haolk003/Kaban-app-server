@@ -18,8 +18,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 
-import { Express } from 'express';
-import { Multer } from 'multer';
 import { CloudinaryService } from 'y/cloudinary';
 
 @Controller()
@@ -101,7 +99,7 @@ export class AuthController {
     @Body('folder') folder: string = 'default',
   ) {
     console.log(file);
-    const response = await this.storageService.uploadFile(file, folder);
+    const response = await this.storageService.uploadAvatar(file, folder);
     return response;
   }
 }
