@@ -20,9 +20,11 @@ import { BoardMember } from './board-member.entity';
 @ObjectType()
 export class Avatar {
   @Field(() => String, { nullable: true })
+  @Directive('@shareable')
   url?: string;
 
   @Field(() => String, { nullable: true })
+  @Directive('@shareable')
   public_id?: string;
 }
 

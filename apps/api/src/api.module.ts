@@ -13,6 +13,12 @@ import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
   imports: [
     GraphQLModule.forRoot<ApolloGatewayDriverConfig>({
       driver: ApolloGatewayDriver,
+      server: {
+        context: ({ req, res }: { req: Request; res: Response }) => ({
+          req,
+          res,
+        }),
+      },
       gateway: {
         supergraphSdl: new IntrospectAndCompose({
           subgraphs: [

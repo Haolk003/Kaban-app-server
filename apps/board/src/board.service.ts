@@ -11,6 +11,7 @@ import { AddMemberDto } from './dto/add-member-board.dto';
 import { EmailService } from 'y/email';
 
 import { generateProjectKey } from './utils/project-key.generator';
+import { $Enums } from '@prisma/client';
 @Injectable()
 export class BoardService {
   private readonly logger = new Logger(BoardService.name);
@@ -24,11 +25,11 @@ export class BoardService {
     return 'Hello World!';
   }
 
-  async createBoard(createBoardDto: CreateBoardDto) {
+  async createBoard(createBoardDto: CreateBoardDto, ownerId: string) {
     try {
       return await this.prisma.$transaction(async (tx) => {
         const owner = await tx.user.findUnique({
-          where: { id: createBoardDto.ownerId },
+          where: { id: ownerId },
         });
 
         if (!owner) {
@@ -43,11 +44,11 @@ export class BoardService {
           data: {
             title: createBoardDto.title,
             description: createBoardDto.description || '',
-            ownerId: createBoardDto.ownerId,
+            ownerId: ownerId,
             projectKey: projectKey,
             member: {
               create: {
-                userId: createBoardDto.ownerId,
+                userId: ownerId,
                 role: 'OWNER',
               },
             },
@@ -76,6 +77,58 @@ export class BoardService {
     } catch (error: any) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       this.logger.error(`Failed to create board: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getBoardsByUserId(userId: string) {
+    try {
+      const boards = await this.prisma.board.findMany({
+        where: {
+          member: {
+            some: {
+              userId: userId,
+            },
+          },
+        },
+        include: {
+          member: true,
+          list: true,
+        },
+      });
+
+      if (!boards) {
+        throw new NotFoundException('No boards found for this user');
+      }
+
+      return boards;
+    } catch (error: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      this.logger.error(`Failed to get boards: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getBoardById(boardId: string, userId: string) {
+    try {
+      const board = await this.prisma.board.findUnique({
+        where: { id: boardId, ownerId: userId },
+        include: {
+          member: true,
+          list: {
+            include: {
+              task: true,
+            },
+          },
+        },
+      });
+      if (!board) {
+        throw new NotFoundException('Board not found');
+      }
+      return board;
+    } catch (error: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      this.logger.error(`Failed to get board: ${error.message}`);
       throw error;
     }
   }
@@ -157,7 +210,7 @@ export class BoardService {
         data: {
           boardId,
           userId: memberId,
-          role,
+          role: role as $Enums.Member,
         },
         include: {
           board: true,

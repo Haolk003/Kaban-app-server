@@ -402,7 +402,7 @@ export class AuthService {
       res.cookie('accessToken', access_token, {
         secure: false,
         httpOnly: true,
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 1000 * 60 * 5,
         domain: 'localhost',
       });
@@ -410,7 +410,7 @@ export class AuthService {
       res.cookie('refreshToken', refresh_token, {
         secure: false,
         httpOnly: true,
-        sameSite: 'strict',
+        sameSite: 'lax',
         domain: 'localhost',
         maxAge: 1000 * 60 * 60 * 24,
       });

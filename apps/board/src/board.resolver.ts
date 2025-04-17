@@ -1,4 +1,4 @@
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { BoardService } from './board.service';
 import { Board } from 'y/common/entities/board.entity';
 import { UseGuards } from '@nestjs/common';
@@ -19,8 +19,33 @@ export class BoardResolver {
 
   @Mutation(() => Board)
   @UseGuards(AuthGuard)
-  async newBoard(@Args('createBoardInput') createdBoardDto: CreateBoardDto) {
-    const response = await this.boardService.createBoard(createdBoardDto);
+  async newBoard(
+    @Context() ctx: { req: Request },
+    @Args('createBoardInput') createdBoardDto: CreateBoardDto,
+  ) {
+    const { id: userId } = ctx.req.me as { id: string; email: string };
+    const response = await this.boardService.createBoard(
+      createdBoardDto,
+      userId,
+    );
+    return response;
+  }
+
+  @Query(() => [Board])
+  @UseGuards(AuthGuard)
+  async getBoardsByUserId(@Context() ctx: { req: Request }) {
+    const { id: userId } = ctx.req.me as { id: string; email: string };
+
+    const response = await this.boardService.getBoardsByUserId(userId);
+    return response;
+  }
+
+  @Query(() => Board)
+  @UseGuards(AuthGuard)
+  async getBoardById(@Context() ctx: { req: Request }, @Args('id') id: string) {
+    const { id: userId } = ctx.req.me as { id: string; email: string };
+
+    const response = await this.boardService.getBoardById(id, userId);
     return response;
   }
 
@@ -33,7 +58,6 @@ export class BoardResolver {
   ) {
     const { id: userId } = ctx.req.me as { id: string; email: string };
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return this.boardService.updateBoard(id, userId, updateBoardDto);
   }
 

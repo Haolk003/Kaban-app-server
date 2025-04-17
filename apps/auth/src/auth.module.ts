@@ -51,6 +51,7 @@ import { CloudinaryService, CloudinaryModule } from 'y/cloudinary';
     }),
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
       driver: ApolloFederationDriver,
+
       autoSchemaFile: {
         federation: 2,
       },

@@ -14,9 +14,4 @@ export class CreateBoardDto {
   @IsOptional()
   @MaxLength(500)
   description?: string;
-
-  @Field()
-  @IsString()
-  @IsNotEmpty()
-  ownerId: string;
 }
