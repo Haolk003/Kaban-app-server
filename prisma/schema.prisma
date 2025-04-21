@@ -82,15 +82,19 @@ VIEWER
 }
 
 model BoardMember{
+  
   id          String @id @default(cuid())
   userId      String
   user        User @relation(fields: [userId],references: [id])
   boardId     String
   board       Board @relation(fields: [boardId],references: [id],onDelete: Cascade)
   role        Member @default(MEMBER)
+  lastAccessed DateTime?  @updatedAt // Thời gian người dùng truy cập bảng gần nhất
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([userId])
+   @@index([boardId])
    @@unique([userId, boardId]) // Đảm bảo mỗi người dùng chỉ có một vai trò trong một bảng
 }
 

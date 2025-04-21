@@ -43,7 +43,10 @@ export class AuthGuard implements CanActivate {
 
       return false;
     } catch (error) {
-      this.clearInvalidCookies(res);
+      if (error instanceof UnauthorizedException) {
+        this.clearInvalidCookies(res);
+        throw error;
+      }
       throw error;
     }
   }
@@ -59,15 +62,14 @@ export class AuthGuard implements CanActivate {
 
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          avatar: true,
-          board: true,
-          bio: true,
-          location: true,
-          jobName: true,
+
+        include: {
+          boardMembers: {
+            include: {
+              board: true,
+            },
+            orderBy: { createdAt: 'desc' },
+          },
         },
       });
 
@@ -91,6 +93,7 @@ export class AuthGuard implements CanActivate {
     res: Response,
   ): Promise<void> {
     try {
+      console.log(token);
       const payload: { sub: string } = this.jwtService.verify(token, {
         secret: this.config.get('REFRESH_TOKEN_KEY'),
       });

@@ -95,6 +95,9 @@ export class BoardService {
           member: true,
           list: true,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
 
       if (!boards) {

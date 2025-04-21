@@ -34,6 +34,8 @@ export class BoardMember {
   @Column()
   boardId: string;
 
+  @Field(() => Board)
+  @Directive('@shareable')
   @ManyToOne(() => Board, (board) => board.member, { onDelete: 'CASCADE' })
   board: Board;
 

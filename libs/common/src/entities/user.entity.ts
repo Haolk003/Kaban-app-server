@@ -99,7 +99,10 @@ export class User {
 
   @Directive('@shareable')
   @Field(() => [Board])
-  @OneToMany(() => Board, (board) => board.owner)
+  @OneToMany(() => Board, (board) => board.owner, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   boards: Board[];
 
   @Field(() => [Account])
@@ -127,6 +130,11 @@ export class User {
   @OneToMany(() => TaskLike, (taskLike) => taskLike.user)
   taskLikes: TaskLike[];
 
-  @OneToMany(() => BoardMember, (boardMember) => boardMember.user)
+  @Field(() => [BoardMember])
+  @Directive('@shareable')
+  @OneToMany(() => BoardMember, (boardMember) => boardMember.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   boardMembers: BoardMember[];
 }

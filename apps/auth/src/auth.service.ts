@@ -17,6 +17,7 @@ import { Response } from 'express';
 import * as crypto from 'crypto';
 import { ErrorHandlerService } from 'y/common/service/error-hander.service';
 import { UpdateProfileDto } from './dto/user.dto';
+import { CookieConfig, TokenType } from 'y/common/constants';
 
 @Injectable()
 export class AuthService {
@@ -46,12 +47,11 @@ export class AuthService {
     const refresh_token = this.jwtService.sign(
       {
         sub: user.id,
-        email: user.email,
         token_type: 'refreshToken',
       },
       {
         secret: this.configService.get<string>('REFRESH_TOKEN_KEY'),
-        expiresIn: '30d',
+        expiresIn: '7d',
       },
     );
 
@@ -399,21 +399,10 @@ export class AuthService {
         id: user.id,
       });
 
-      res.cookie('accessToken', access_token, {
-        secure: false,
-        httpOnly: true,
-        sameSite: 'lax',
-        maxAge: 1000 * 60 * 5,
-        domain: 'localhost',
-      });
+      res.cookie(TokenType.ACCESS, access_token, CookieConfig.ACCESS);
 
-      res.cookie('refreshToken', refresh_token, {
-        secure: false,
-        httpOnly: true,
-        sameSite: 'lax',
-        domain: 'localhost',
-        maxAge: 1000 * 60 * 60 * 24,
-      });
+      res.cookie(TokenType.REFRESH, refresh_token, CookieConfig.REFRESH);
+
       this.logger.log(`login successs: ${user.id}`);
       return { access_token, refresh_token };
     } catch (error) {
@@ -540,6 +529,25 @@ export class AuthService {
       return findUserAndUpdate;
     } catch (error) {
       this.errorHander.handleError(error as Error, 'AuthService.updateProfile');
+    }
+  }
+
+  async findUserByEmail(email: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      return user;
+    } catch (error) {
+      this.errorHander.handleError(
+        error as Error,
+        'AuthService.findUserByEmail',
+      );
     }
   }
 

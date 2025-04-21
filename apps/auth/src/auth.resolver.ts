@@ -88,18 +88,14 @@ export class AuthResolver {
   logoutUser(@Context() ctx: { res: Response }) {
     ctx.res.clearCookie('accessToken', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false,
       sameSite: 'lax' as const,
-      maxAge: 15 * 60 * 1000, // 15 phút
-      domain: 'localhost',
     });
 
     ctx.res.clearCookie('refreshToken', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false,
       sameSite: 'lax' as const,
-      maxAge: 15 * 60 * 1000, // 15 phút
-      domain: 'localhost',
     });
     return 'Loggout successfully';
   }
@@ -115,6 +111,13 @@ export class AuthResolver {
       userId,
       updateProfileDto,
     );
+    return response;
+  }
+
+  @Mutation(() => User)
+  @UseGuards(AuthGuard)
+  async findUserByEmail(@Args('email') email: string) {
+    const response = await this.authService.findUserByEmail(email);
     return response;
   }
 
