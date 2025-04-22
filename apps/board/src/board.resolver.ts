@@ -12,6 +12,7 @@ import { BoardMember } from 'y/common/entities/board-member.entity';
 import { AddMemberDto } from './dto/add-member-board.dto';
 import { DeleteMemberBoardDto } from './dto/delete-member-board.dto';
 import { DeleteBoardDto } from './dto/delete-board.dto';
+import { BoardResponse } from './types/board.type';
 
 @Resolver('Board')
 export class BoardResolver {
@@ -31,7 +32,7 @@ export class BoardResolver {
     return response;
   }
 
-  @Query(() => [Board])
+  @Query(() => [BoardResponse])
   @UseGuards(AuthGuard)
   async getBoardsByUserId(@Context() ctx: { req: Request }) {
     const { id: userId } = ctx.req.me as { id: string; email: string };

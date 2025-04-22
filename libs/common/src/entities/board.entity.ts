@@ -66,6 +66,16 @@ export class Board {
   updatedAt: Date;
 
   @Directive('@shareable')
+  @Field(() => String)
+  @Column({ default: 'ACTIVE' })
+  status: 'ACTIVE' | 'ARCHIVED';
+
+  @Directive('@shareable')
+  @Field(() => String)
+  @Column()
+  color: string;
+
+  @Directive('@shareable')
   @Field(() => [List])
   @OneToMany(() => List, (list) => list.board)
   list: List[];

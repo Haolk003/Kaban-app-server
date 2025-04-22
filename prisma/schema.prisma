@@ -54,7 +54,10 @@ model Account {
   @@unique([provider,userId])
 }
 
-
+enum BoardStatus {
+  ACTIVE    // Trạng thái hoạt động
+  ARCHIVED  // Trạng thái đã lưu trữ
+}
 
 model Board {
   id          String   @id @default(cuid())
@@ -62,6 +65,7 @@ model Board {
   projectKey  String
   description String?
   ownerId     String
+  color       String  @default("#3b82f6")
   owner       User     @relation(fields: [ownerId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -69,6 +73,7 @@ model Board {
   labels      Label[]
   tasks       Task[]
   member BoardMember[]
+  status BoardStatus @default(ACTIVE) 
 
   @@unique([projectKey,ownerId])
   @@unique([title,ownerId])
@@ -80,6 +85,8 @@ ADMIN
 OWNER
 VIEWER
 }
+
+
 
 model BoardMember{
   

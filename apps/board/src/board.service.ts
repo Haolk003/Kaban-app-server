@@ -25,6 +25,25 @@ export class BoardService {
     return 'Hello World!';
   }
 
+  // utils/color.ts
+  generateBoardColor = (): string => {
+    // Danh sách màu được chọn trước để đảm bảo phù hợp UI
+    const PRESET_COLORS = [
+      '#3b82f6', // Blue
+      '#10b981', // Green
+      '#f59e0b', // Amber
+      '#ec4899', // Pink
+      '#8b5cf6', // Purple
+      '#ef4444', // Red
+      '#06b6d4', // Cyan
+      '#84cc16', // Lime
+      '#f97316', // Orange
+      '#64748b', // Slate
+    ];
+
+    return PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)];
+  };
+
   async createBoard(createBoardDto: CreateBoardDto, ownerId: string) {
     try {
       return await this.prisma.$transaction(async (tx) => {
@@ -46,6 +65,7 @@ export class BoardService {
             description: createBoardDto.description || '',
             ownerId: ownerId,
             projectKey: projectKey,
+            color: this.generateBoardColor(),
             member: {
               create: {
                 userId: ownerId,
@@ -83,28 +103,71 @@ export class BoardService {
 
   async getBoardsByUserId(userId: string) {
     try {
-      const boards = await this.prisma.board.findMany({
-        where: {
-          member: {
-            some: {
-              userId: userId,
+      const userWithBoard = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          boardMembers: {
+            include: {
+              board: {
+                include: {
+                  _count: {
+                    select: {
+                      tasks: true,
+                      member: true,
+                    },
+                  },
+                  tasks: {
+                    select: {
+                      id: true,
+                      subTask: {
+                        select: {
+                          id: true,
+                          isCompleted: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              lastAccessed: 'desc',
             },
           },
         },
-        include: {
-          member: true,
-          list: true,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
       });
 
-      if (!boards) {
-        throw new NotFoundException('No boards found for this user');
-      }
+      if (!userWithBoard) return [];
 
-      return boards;
+      return userWithBoard.boardMembers.map((boardMember) => {
+        const completedTasks = boardMember.board.tasks.reduce((acc, task) => {
+          return (
+            acc + (task.subTask.every((subTask) => subTask.isCompleted) ? 1 : 0)
+          );
+        }, 0);
+
+        const isOwner = boardMember.board.ownerId === userId;
+
+        return {
+          id: boardMember.board.id,
+          title: boardMember.board.title,
+          description: boardMember.board.description,
+          projectKey: boardMember.board.projectKey,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          color: boardMember?.board?.color || '#3b82f6',
+          createdAt: boardMember.board.createdAt,
+          updatedAt: boardMember.board.updatedAt,
+          tasksCount: {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            total: boardMember.board._count?.tasks || 0,
+            completed: completedTasks,
+          },
+          membersCount: boardMember.board._count.member,
+          role: boardMember.role,
+          status: boardMember.board.status,
+          isOwner,
+        };
+      });
     } catch (error: any) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       this.logger.error(`Failed to get boards: ${error.message}`);
