@@ -19,6 +19,8 @@
     "y/common/(.*)": "<rootDir>/../libs/common/src/$1",
     "y/email": "<rootDir>/../libs/email/src",
     "y/email/(.*)": "<rootDir>/../libs/email/src/$1",
+    "y/health": "<rootDir>/../libs/health/src",
+    "y/health/(.*)": "<rootDir>/../libs/health/src/$1",
     "y/prisma": "<rootDir>/../libs/prisma/src",
     "y/prisma/(.*)": "<rootDir>/../libs/prisma/src/$1",
     "y/rabbitmq": "<rootDir>/../libs/rabbitmq/src",

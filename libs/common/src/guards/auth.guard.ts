@@ -98,7 +98,6 @@ export class AuthGuard implements CanActivate {
         secret: this.config.get('REFRESH_TOKEN_KEY'),
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       // if (payload.tokenType !== TokenType.REFRESH) {
       //   throw new UnauthorizedException(AuthError.INVALID_TOKEN_TYPE);
       // }
@@ -140,36 +139,37 @@ export class AuthGuard implements CanActivate {
     user: { id: string; email: string },
     res: Response,
   ): void {
-    const accessToken = this.generateToken(user, TokenType.ACCESS);
-    const refreshToken = this.generateToken(user, TokenType.REFRESH);
+    const { accessToken, refreshToken } = this.generateToken(user);
 
     res.cookie(TokenType.ACCESS, accessToken, CookieConfig.ACCESS);
     res.cookie(TokenType.REFRESH, refreshToken, CookieConfig.REFRESH);
   }
 
-  private generateToken(
-    user: { id: string; email: string },
-    type: TokenType,
-  ): string {
-    const config = {
-      [TokenType.ACCESS]: {
-        secret: this.config.get('ACCESS_TOKEN_KEY') as string,
+  private generateToken(user: { id: string; email: string }) {
+    const accessToken = this.jwtService.sign(
+      {
+        email: user.email,
+        sub: user.id,
+        tokenType: 'accessToken',
+      },
+      {
+        secret: this.config.get<string>('ACCESS_TOKEN_KEY'),
         expiresIn: '15m',
       },
-      [TokenType.REFRESH]: {
-        secret: this.config.get('REFRESH_TOKEN_KEY') as string,
-        expiresIn: '7d',
-      },
-    }[type];
+    );
 
-    return this.jwtService.sign(
+    const refreshToken = this.jwtService.sign(
       {
         sub: user.id,
-        email: user.email,
-        tokenType: type,
+        token_type: 'refreshToken',
       },
-      config,
+      {
+        secret: this.config.get<string>('REFRESH_TOKEN_KEY'),
+        expiresIn: '7d',
+      },
     );
+
+    return { accessToken, refreshToken };
   }
 
   private extractToken(req: Request, type: TokenType): string | null {

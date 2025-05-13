@@ -7,6 +7,8 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
+  // Route GraphQL và REST qua các path khác nhau
+
   app.enableCors({
     origin: 'http://localhost:3000',
     credentials: true,

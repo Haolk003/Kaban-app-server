@@ -15,10 +15,12 @@ import { CommonModule } from 'y/common';
 import { PrismaService } from 'y/prisma';
 import { JwtService } from '@nestjs/jwt';
 import { EmailModule, EmailService } from 'y/email';
+import { HealthModule } from 'y/health';
 
 @Module({
   imports: [
     CommonModule,
+    HealthModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,

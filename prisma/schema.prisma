@@ -13,14 +13,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum BoardStatus {
+  ACTIVE // Trạng thái hoạt động
+  ARCHIVED // Trạng thái đã lưu trữ
+}
 
+enum ListStatus {
+  ACTIVE
+  ARCHIVED
+  HIDDEN
+  TEMPLATE
+}
 
 model User {
-  id                            String    @id @default(cuid())
-  email                         String   @unique 
+  id                            String           @id @default(cuid())
+  email                         String           @unique
   name                          String
-  avatar                        Json?  
-  isVerified                    Boolean   @default(false)
+  avatar                        Json?
+  isVerified                    Boolean          @default(false)
   verification_token            String?
   activation_code               String?
   verification_token_expires_at DateTime?
@@ -29,12 +39,12 @@ model User {
   bio                           String?
   location                      String?
   jobName                       String?
-  createdAt                     DateTime  @default(now())
-  updatedAt                     DateTime  @updatedAt
+  createdAt                     DateTime         @default(now())
+  updatedAt                     DateTime         @updatedAt
   board                         Board[]
   account                       Account[]
   boardMembers                  BoardMember[]
-  assignerTask                  Task[] @relation("assignerRelation")
+  assignerTask                  Task[]           @relation("assignerRelation")
   taskDiscussion                Discussion[]
   userTask                      UserTask[]
   attachments                   FileAttachment[]
@@ -42,67 +52,59 @@ model User {
 }
 
 model Account {
-  id           String  @id @default(cuid())
+  id           String   @id @default(cuid())
   userId       String
-  user         User    @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id])
   provider     String
-  providerId   String? 
+  providerId   String?
   passwordHash String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  @@unique([provider,userId])
-}
-
-enum BoardStatus {
-  ACTIVE    // Trạng thái hoạt động
-  ARCHIVED  // Trạng thái đã lưu trữ
+  @@unique([provider, userId])
 }
 
 model Board {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   title       String
   projectKey  String
   description String?
   ownerId     String
-  color       String  @default("#3b82f6")
-  owner       User     @relation(fields: [ownerId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  list        List[] 
+  color       String        @default("#3b82f6")
+  owner       User          @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  list        List[]
   labels      Label[]
   tasks       Task[]
-  member BoardMember[]
-  status BoardStatus @default(ACTIVE) 
+  member      BoardMember[]
+  status      BoardStatus   @default(ACTIVE)
 
-  @@unique([projectKey,ownerId])
-  @@unique([title,ownerId])
+  @@unique([projectKey, ownerId])
+  @@unique([title, ownerId])
 }
 
 enum Member {
-MEMBER
-ADMIN
-OWNER
-VIEWER
+  MEMBER
+  ADMIN
+  OWNER
+  VIEWER
 }
 
+model BoardMember {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  boardId      String
+  board        Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  role         Member    @default(MEMBER)
+  lastAccessed DateTime? @updatedAt // Thời gian người dùng truy cập bảng gần nhất
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-
-model BoardMember{
-  
-  id          String @id @default(cuid())
-  userId      String
-  user        User @relation(fields: [userId],references: [id])
-  boardId     String
-  board       Board @relation(fields: [boardId],references: [id],onDelete: Cascade)
-  role        Member @default(MEMBER)
-  lastAccessed DateTime?  @updatedAt // Thời gian người dùng truy cập bảng gần nhất
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  @@unique([userId, boardId]) // Đảm bảo mỗi người dùng chỉ có một vai trò trong một bảng
   @@index([userId])
-   @@index([boardId])
-   @@unique([userId, boardId]) // Đảm bảo mỗi người dùng chỉ có một vai trò trong một bảng
+  @@index([boardId])
 }
 
 enum Priority {
@@ -110,36 +112,50 @@ enum Priority {
   medium
   high
 }
- 
+
 model List {
-  id        String   @id @default(cuid())
-  name      String
-  boardId   String
-  order     Int
-  status    String
-  board     Board    @relation(fields: [boardId], references: [id],onDelete:Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  task      Task[]
-}
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  boardId     String
+  order       Int
+  status      ListStatus @default(ACTIVE)
+  isArchived  Boolean    @default(false)
+  color       String?
+  icon        String?
 
-
-
-model Label {
-  id String @id @default(cuid())
-  name String
-  boardId String 
-  board  Board @relation(fields: [boardId],references: [id])
+  // Relationships
+  board Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
   tasks Task[]
 
-  @@unique([name,boardId])
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+
+  // Statistics (optional)
+  taskCount Int @default(0)
+
+  @@unique([boardId, name])
+  @@index([boardId])
+  @@index([order])
+}
+
+model Label {
+  id      String @id @default(cuid())
+  name    String
+  boardId String
+  board   Board  @relation(fields: [boardId], references: [id])
+  tasks   Task[]
+
+  @@unique([name, boardId])
 }
 
 model TaskLike {
   id        String   @id @default(cuid())
-  userId    String   // Người like task
+  userId    String // Người like task
   user      User     @relation(fields: [userId], references: [id])
-  taskId    String   // Task được like
+  taskId    String // Task được like
   task      Task     @relation(fields: [taskId], references: [id])
   createdAt DateTime @default(now())
 
@@ -148,32 +164,30 @@ model TaskLike {
   @@index([taskId]) // Index cho taskId
 }
 
-
 model Task {
-  id            String   @id @default(cuid())
-  taskId        String 
-  taskNumber    Int
-  title         String
-  description   String?
-  orderId       Int
-  listId        String
-  list          List @relation(fields: [listId], references: [id],onDelete: Cascade)
-  assignerId    String?
-  assigner      User? @relation(fields: [assignerId],references: [id],name: "assignerRelation")
-  boardId       String
-  board         Board @relation(fields: [boardId],references: [id])
-  labels    Label[]
-  startDate     DateTime?
-  dueDate       DateTime?
-  subTask       Subtask[]
-  discussion    Discussion[]
-  assignedTo    UserTask[]
+  id          String           @id @default(cuid())
+  taskId      String
+  taskNumber  Int
+  title       String
+  description String?
+  orderId     Int
+  listId      String
+  list        List             @relation(fields: [listId], references: [id], onDelete: Cascade)
+  assignerId  String?
+  assigner    User?            @relation(fields: [assignerId], references: [id], name: "assignerRelation")
+  boardId     String
+  board       Board            @relation(fields: [boardId], references: [id])
+  labels      Label[]
+  startDate   DateTime?
+  dueDate     DateTime?
+  subTask     Subtask[]
+  discussion  Discussion[]
+  assignedTo  UserTask[]
   attachments FileAttachment[]
-  likes         TaskLike[]
-  priority    Priority @default(medium)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
+  likes       TaskLike[]
+  priority    Priority         @default(medium)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   @@index([listId]) // Thêm index cho listId
   @@index([assignerId]) // Thêm index cho assignerId
@@ -181,57 +195,57 @@ model Task {
   @@index([taskId])
 }
 
-model Subtask{
-  id            String    @id @default(cuid())
-  title         String
-  description   String?
-  isCompleted   Boolean   @default(false)
-  taskId        String
-  task          Task      @relation(fields: [taskId],references: [id],onDelete: Cascade)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  }
+model Subtask {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  isCompleted Boolean  @default(false)
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 
-  model Discussion{
-    id          String    @id @default(cuid())
-    content     String
-    userId      String
-    user        User      @relation(fields: [userId], references: [id])
-    taskId      String
-    task        Task      @relation(fields: [taskId],references: [id],onDelete: Cascade)
-     attachments FileAttachment[]
-    createdAt   DateTime  @default(now())
-    updatedAt   DateTime  @updatedAt 
-  }
+model Discussion {
+  id          String           @id @default(cuid())
+  content     String
+  userId      String
+  user        User             @relation(fields: [userId], references: [id])
+  taskId      String
+  task        Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  attachments FileAttachment[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
 
-  model UserTask{
-    id          String    @id @default(cuid())
-    userId      String
-    user        User     @relation(fields: [userId],references: [id])
-    taskId      String
-    task        Task     @relation(fields: [taskId],references: [id],onDelete: Cascade)
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+model UserTask {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@unique([userId,taskId])  
-  }
+  @@unique([userId, taskId])
+}
 
-model  FileAttachment{
-  id            String    @id @default(cuid())
-  fileName      String  
-  filePath      String
-  fileType      String
-  fileSize      Int
-  taskId        String
-  task          Task?       @relation(fields: [taskId],references: [id],onDelete: Cascade)
-  discussionId  String    
-  discussion    Discussion? @relation(fields: [discussionId],references: [id],onDelete: Cascade)
-  uploadedById  String
-  uploadedBy   User         @relation(fields: [uploadedById], references: [id])
-  createdAt     DateTime    @default(now())
+model FileAttachment {
+  id             String      @id @default(cuid())
+  fileName       String
+  file_public_id String
+  filePath       String
+  fileType       String
+  fileSize       Int
+  taskId         String?
+  task           Task?       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  discussionId   String?
+  discussion     Discussion? @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  uploadedById   String
+  uploadedBy     User        @relation(fields: [uploadedById], references: [id])
+  createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
   @@index([taskId]) // tao index cho taskId
   @@index([discussionId]) // tao index cho discussionId
 }
-   

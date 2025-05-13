@@ -32,6 +32,21 @@ export class List {
   @Column()
   boardId: string;
 
+  @Field(() => String, { nullable: true })
+  @Directive('@shareable')
+  @Column()
+  color?: string;
+
+  @Field(() => String, { nullable: true })
+  @Directive('@shareable')
+  @Column()
+  icon?: string;
+
+  @Field(() => String, { nullable: true })
+  @Directive('@shareable')
+  @Column()
+  description?: string;
+
   @Index()
   @ManyToOne(() => Board, (board) => board.list)
   @JoinColumn({ name: 'boardId' })
@@ -40,7 +55,7 @@ export class List {
   @Field(() => [Task])
   @Directive('@shareable')
   @OneToMany(() => Task, (task) => task.list)
-  task: Task[];
+  tasks: Task[];
 
   @Field()
   @Directive('@shareable')

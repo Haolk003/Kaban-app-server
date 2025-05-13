@@ -27,7 +27,6 @@ export class BoardService {
 
   // utils/color.ts
   generateBoardColor = (): string => {
-    // Danh sách màu được chọn trước để đảm bảo phù hợp UI
     const PRESET_COLORS = [
       '#3b82f6', // Blue
       '#10b981', // Green
@@ -87,7 +86,7 @@ export class BoardService {
             name,
             order: index + 1,
             boardId: board.id,
-            status: name,
+            createdBy: 'owner',
           })),
         });
 
@@ -153,13 +152,11 @@ export class BoardService {
           title: boardMember.board.title,
           description: boardMember.board.description,
           projectKey: boardMember.board.projectKey,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           color: boardMember?.board?.color || '#3b82f6',
           createdAt: boardMember.board.createdAt,
           updatedAt: boardMember.board.updatedAt,
           tasksCount: {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            total: boardMember.board._count?.tasks || 0,
+            total: boardMember.board._count.tasks || 0,
             completed: completedTasks,
           },
           membersCount: boardMember.board._count.member,
@@ -183,7 +180,7 @@ export class BoardService {
           member: true,
           list: {
             include: {
-              task: true,
+              tasks: true,
             },
           },
         },
@@ -192,9 +189,123 @@ export class BoardService {
         throw new NotFoundException('Board not found');
       }
       return board;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+
+      this.logger.error(`Failed to get board: ${errorMessage}`);
+
+      throw error;
+    }
+  }
+
+  async getBoardDetailsWithTasks(boardId: string, userId: string) {
+    try {
+      const board = await this.prisma.board.findUnique({
+        where: { id: boardId, ownerId: userId },
+        include: {
+          owner: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatar: true,
+            },
+          },
+
+          list: {
+            orderBy: {
+              order: 'asc',
+            },
+            include: {
+              tasks: {
+                orderBy: { orderId: 'asc' },
+                include: {
+                  subTask: {
+                    orderBy: { createdAt: 'asc' },
+                    select: {
+                      id: true,
+                      title: true,
+                      isCompleted: true,
+                    },
+                  },
+                  assigner: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
+                      avatar: true,
+                    },
+                  },
+                  labels: true,
+                  assignedTo: {
+                    include: {
+                      user: {
+                        select: {
+                          id: true,
+                          name: true,
+                          avatar: true,
+                        },
+                      },
+                    },
+                  },
+                  _count: {
+                    select: {
+                      subTask: true,
+                      likes: true,
+                      discussion: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          member: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatar: true,
+                },
+              },
+            },
+          },
+          labels: true,
+          _count: {
+            select: {
+              tasks: true,
+              member: true,
+              list: true,
+            },
+          },
+        },
+      });
+
+      if (!board) {
+        throw new NotFoundException('Board not found');
+      }
+
+      return {
+        ...board,
+        counts: board._count,
+        lists: board.list.map((list) => ({
+          ...list,
+          tasks: list.tasks.map((task) => ({
+            ...task,
+            completedSubTasks: task.subTask.filter(
+              (subTask) => subTask.isCompleted,
+            ).length,
+            totalSubTasks: task.subTask.length,
+            counts: task._count,
+          })),
+        })),
+      };
     } catch (error: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      this.logger.error(`Failed to get board: ${error.message}`);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+
+      this.logger.error(`Failed to get board details: ${errorMessage}`);
       throw error;
     }
   }

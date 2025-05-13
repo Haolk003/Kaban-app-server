@@ -12,7 +12,7 @@ import { BoardMember } from 'y/common/entities/board-member.entity';
 import { AddMemberDto } from './dto/add-member-board.dto';
 import { DeleteMemberBoardDto } from './dto/delete-member-board.dto';
 import { DeleteBoardDto } from './dto/delete-board.dto';
-import { BoardResponse } from './types/board.type';
+import { BoardDetailResponse, BoardResponse } from './types/board.type';
 
 @Resolver('Board')
 export class BoardResolver {
@@ -25,11 +25,7 @@ export class BoardResolver {
     @Args('createBoardInput') createdBoardDto: CreateBoardDto,
   ) {
     const { id: userId } = ctx.req.me as { id: string; email: string };
-    const response = await this.boardService.createBoard(
-      createdBoardDto,
-      userId,
-    );
-    return response;
+    return await this.boardService.createBoard(createdBoardDto, userId);
   }
 
   @Query(() => [BoardResponse])
@@ -37,8 +33,7 @@ export class BoardResolver {
   async getBoardsByUserId(@Context() ctx: { req: Request }) {
     const { id: userId } = ctx.req.me as { id: string; email: string };
 
-    const response = await this.boardService.getBoardsByUserId(userId);
-    return response;
+    return await this.boardService.getBoardsByUserId(userId);
   }
 
   @Query(() => Board)
@@ -104,6 +99,21 @@ export class BoardResolver {
 
     const response = await this.boardService.deleteBoard(
       deleteBoardDto.boardId,
+      userId,
+    );
+    return response;
+  }
+
+  @Query(() => BoardDetailResponse)
+  @UseGuards(AuthGuard)
+  async getBoardDetailById(
+    @Context() ctx: { req: Request },
+    @Args('id') id: string,
+  ) {
+    const { id: userId } = ctx.req.me as { id: string; email: string };
+
+    const response = await this.boardService.getBoardDetailsWithTasks(
+      id,
       userId,
     );
     return response;

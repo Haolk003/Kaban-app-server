@@ -9,6 +9,10 @@ import { join } from 'path';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AuthModule);
   app.use(cookieParser());
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  });
 
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ limit: '50mb', extended: true }));

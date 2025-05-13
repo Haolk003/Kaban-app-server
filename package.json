@@ -25,6 +25,7 @@
     "@apollo/subgraph": "^2.10.0",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/apollo": "^13.1.0",
+    "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^11.0.11",
     "@nestjs/config": "^4.0.1",
     "@nestjs/core": "^11.0.11",
@@ -33,6 +34,7 @@
     "@nestjs/microservices": "^11.0.11",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.11",
+    "@nestjs/terminus": "^11.0.0",
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/typeorm": "^11.0.0",
     "@prisma/client": "^6.4.1",
@@ -41,6 +43,7 @@
     "amqplib": "^0.10.5",
     "axios": "^1.8.2",
     "bcryptjs": "^3.0.2",
+    "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cloudinary": "^2.5.1",
     "cookie-parser": "^1.4.7",
@@ -57,9 +60,12 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
+    "pg": "^8.15.6",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
-    "sharp": "^0.33.5"
+    "sharp": "^0.33.5",
+    "typeorm": "^0.3.22",
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
@@ -122,6 +128,7 @@
       "^y/cloudinary(|/.*)$": "<rootDir>/libs/cloudinary/src/$1",
       "^y/common(|/.*)$": "<rootDir>/libs/common/src/$1",
       "^y/email(|/.*)$": "<rootDir>/libs/email/src/$1",
+      "^y/health(|/.*)$": "<rootDir>/libs/health/src/$1",
       "^y/prisma(|/.*)$": "<rootDir>/libs/prisma/src/$1",
       "^y/rabbitmq(|/.*)$": "<rootDir>/libs/rabbitmq/src/$1"
     }

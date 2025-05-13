@@ -11,6 +11,7 @@ import {
   FileTypeValidator,
   ParseFilePipe,
   Post,
+
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -20,12 +21,21 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 import { CloudinaryService } from 'y/cloudinary';
 
-@Controller()
+@Controller('/api')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly storageService: CloudinaryService,
   ) {}
+
+  @Get('/api/health')
+  index(@Req() req: Request, @Res() res: Response) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.status(200).send('health2');
+    return 'health2';
+  }
 
   @Get('auth/google')
   @UseGuards(AuthGuard('google'))
@@ -57,7 +67,7 @@ export class AuthController {
       res,
     );
 
-    return res.redirect('http://localhost:3000');
+    return res.redirect('http://localhost:3000/boards');
   }
 
   @Get('auth/github')
@@ -78,7 +88,7 @@ export class AuthController {
 
     await this.authService.validateGithub({ email, id, name, picture }, res);
 
-    return res.redirect('http://localhost:3000');
+    return res.redirect('http://localhost:3000/boards');
   }
 
   @Post('upload')

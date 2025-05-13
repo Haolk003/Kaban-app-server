@@ -22,10 +22,7 @@ import { EmailService } from './email.service';
           from: '"No Reply" <noreply@example.com>',
         },
         template: {
-          dir: join(
-            __dirname,
-            '../../../../kanban-server/libs/email/src/templates',
-          ),
+          dir: join(__dirname, '../../../libs/email/src/templates'),
           adapter: new EjsAdapter(),
           options: {
             strict: false,

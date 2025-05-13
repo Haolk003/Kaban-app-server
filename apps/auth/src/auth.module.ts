@@ -25,9 +25,11 @@ import { APP_FILTER } from '@nestjs/core';
 import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter';
 
 import { CloudinaryService, CloudinaryModule } from 'y/cloudinary';
+import { HealthModule } from 'y/health';
 
 @Module({
   imports: [
+    HealthModule,
     CloudinaryModule,
     ThrottlerModule.forRoot({
       throttlers: [
@@ -51,7 +53,7 @@ import { CloudinaryService, CloudinaryModule } from 'y/cloudinary';
     }),
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
       driver: ApolloFederationDriver,
-
+      path: '/graphql',
       autoSchemaFile: {
         federation: 2,
       },
@@ -65,7 +67,7 @@ import { CloudinaryService, CloudinaryModule } from 'y/cloudinary';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRECT'),
+        secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: '1h' },
       }),
     }),

@@ -19,8 +19,13 @@ import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter'
 import { APP_FILTER } from '@nestjs/core';
 import { SubTaskService } from './subtasks/subTask.service';
 import { SubTaskModule } from './subtasks/subTask.module';
+import { HealthModule } from 'y/health';
+import { CloudinaryModule, CloudinaryService } from 'y/cloudinary';
+
 @Module({
   imports: [
+    CloudinaryModule,
+    HealthModule,
     LabelModule,
     SubTaskModule,
     CommonModule,
@@ -53,6 +58,7 @@ import { SubTaskModule } from './subtasks/subTask.module';
     LabelService,
     JwtService,
     SubTaskService,
+    CloudinaryService,
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
   ],
 })
