@@ -22,3 +22,4 @@ export const createListSchema = z.object({
     .optional(),
   icon: z.string().optional(),
 });
+

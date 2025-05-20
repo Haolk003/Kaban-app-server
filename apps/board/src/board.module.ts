@@ -15,7 +15,9 @@ import { CommonModule } from 'y/common';
 import { PrismaService } from 'y/prisma';
 import { JwtService } from '@nestjs/jwt';
 import { EmailModule, EmailService } from 'y/email';
+
 import { HealthModule } from 'y/health';
+
 
 @Module({
   imports: [
@@ -44,11 +46,13 @@ import { HealthModule } from 'y/health';
   ],
   controllers: [BoardController],
   providers: [
+    ListService,
     BoardService,
     BoardResolver,
     PrismaService,
     JwtService,
     EmailService,
+    { provide: APP_FILTER, useClass: GlobalExceptionFilter },
   ],
 })
 export class BoardModule {}

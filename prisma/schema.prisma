@@ -133,6 +133,11 @@ model List {
   updatedAt DateTime @updatedAt
   createdBy String
 
+  @@unique([boardId,name])
+  @@unique([boardId,status])
+}
+
+
   // Statistics (optional)
   taskCount Int @default(0)
 
@@ -142,12 +147,12 @@ model List {
 }
 
 model Label {
-  id      String @id @default(cuid())
-  name    String
-  boardId String
-  board   Board  @relation(fields: [boardId], references: [id])
-  tasks   Task[]
 
+  id String @id @default(cuid())
+  name String
+  boardId String 
+  board  Board @relation(fields: [boardId],references: [id],onDelete:Cascade)
+  tasks Task[]
   @@unique([name, boardId])
 }
 

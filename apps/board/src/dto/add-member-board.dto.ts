@@ -1,6 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { IsNotEmpty, IsString } from 'class-validator';
-
+import { Member } from 'y/common/enum/member.enum';
 @InputType()
 export class AddMemberDto {
   @Field()
@@ -13,8 +13,7 @@ export class AddMemberDto {
   @IsNotEmpty()
   userId: string;
 
-  @Field()
+  @Field(() => Member)
   @IsString()
-  @IsNotEmpty()
-  role: string;
+  role?: Member;
 }
