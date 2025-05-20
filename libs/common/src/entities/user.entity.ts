@@ -17,6 +17,17 @@ import { Discussion } from './discussion.entity';
 import { TaskLike } from './task-like.entity';
 import { BoardMember } from './board-member.entity';
 
+@ObjectType()
+export class Avatar {
+  @Field(() => String, { nullable: true })
+  @Directive('@shareable')
+  url?: string;
+
+  @Field(() => String, { nullable: true })
+  @Directive('@shareable')
+  public_id?: string;
+}
+
 @Directive('@key(fields: "id")')
 @ObjectType()
 @Entity()
@@ -36,15 +47,30 @@ export class User {
   @Column()
   name: string;
 
-  @Field(() => String, { nullable: true })
+  @Field(() => Avatar, { nullable: true })
   @Directive('@shareable')
-  @Column({ nullable: true })
-  avatar?: string;
+  @Column('json', { nullable: true })
+  avatar?: Avatar;
 
   @Field({ defaultValue: false })
   @Directive('@shareable')
   @Column({ default: false })
   isVerified: boolean;
+
+  @Field(() => String, { nullable: true })
+  @Directive('@shareable')
+  @Column({ nullable: true })
+  bio?: string;
+
+  @Field(() => String, { nullable: true })
+  @Directive('@shareable')
+  @Column({ nullable: true })
+  location?: string;
+
+  @Field(() => String, { nullable: true })
+  @Directive('@shareable')
+  @Column({ nullable: true })
+  jobName?: string;
 
   @HideField()
   @Column({ nullable: true })
@@ -73,7 +99,10 @@ export class User {
 
   @Directive('@shareable')
   @Field(() => [Board])
-  @OneToMany(() => Board, (board) => board.owner)
+  @OneToMany(() => Board, (board) => board.owner, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   boards: Board[];
 
   @Field(() => [Account])
@@ -101,6 +130,11 @@ export class User {
   @OneToMany(() => TaskLike, (taskLike) => taskLike.user)
   taskLikes: TaskLike[];
 
-  @OneToMany(() => BoardMember, (boardMember) => boardMember.user)
+  @Field(() => [BoardMember])
+  @Directive('@shareable')
+  @OneToMany(() => BoardMember, (boardMember) => boardMember.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   boardMembers: BoardMember[];
 }

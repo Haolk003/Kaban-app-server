@@ -24,9 +24,13 @@ import { CommonModule } from 'y/common';
 import { APP_FILTER } from '@nestjs/core';
 import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter';
 
+import { CloudinaryService, CloudinaryModule } from 'y/cloudinary';
+import { HealthModule } from 'y/health';
+
 @Module({
   imports: [
-    CommonModule,
+    HealthModule,
+    CloudinaryModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -49,12 +53,13 @@ import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter'
     }),
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
       driver: ApolloFederationDriver,
+      path: '/graphql',
       autoSchemaFile: {
         federation: 2,
       },
       sortSchema: true,
       playground: true,
-      introspection: true,
+
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       context: ({ req, res }) => ({ req, res }),
     }),
@@ -62,10 +67,12 @@ import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter'
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRECT'),
+        secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: '1h' },
       }),
     }),
+
+    CommonModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -78,6 +85,7 @@ import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter'
     LocalStrategy,
     GithubStrategy,
     JwtStrategy,
+    CloudinaryService,
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
   ],
 })

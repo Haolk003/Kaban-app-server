@@ -1,12 +1,41 @@
-import { Controller, Get, Req, UseGuards, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Req,
+  UseGuards,
+  Res,
+  UseInterceptors,
+  UploadedFile,
+  Body,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  ParseFilePipe,
+  Post,
+
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 
 import { Request, Response } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
 
-@Controller()
+import { CloudinaryService } from 'y/cloudinary';
+
+@Controller('/api')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly storageService: CloudinaryService,
+  ) {}
+
+  @Get('/api/health')
+  index(@Req() req: Request, @Res() res: Response) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.status(200).send('health2');
+    return 'health2';
+  }
 
   @Get('auth/google')
   @UseGuards(AuthGuard('google'))
@@ -38,7 +67,7 @@ export class AuthController {
       res,
     );
 
-    return res.redirect('http://localhost:3000');
+    return res.redirect('http://localhost:3000/boards');
   }
 
   @Get('auth/github')
@@ -59,6 +88,28 @@ export class AuthController {
 
     await this.authService.validateGithub({ email, id, name, picture }, res);
 
-    return res.redirect('http://localhost:3000');
+    return res.redirect('http://localhost:3000/boards');
+  }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 10 }), // 10MB
+          new FileTypeValidator({
+            fileType:
+              /^(image\/(jpeg|png|gif|jpg)|application\/(pdf|msword|vnd.openxmlformats-officedocument.wordprocessingml.document))$/,
+          }),
+        ],
+      }),
+    )
+    file: any,
+    @Body('folder') folder: string = 'default',
+  ) {
+    console.log(file);
+    const response = await this.storageService.uploadAvatar(file, folder);
+    return response;
   }
 }

@@ -17,16 +17,14 @@ export enum AuthError {
 export const CookieConfig = {
   ACCESS: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     sameSite: 'lax' as const,
     maxAge: 15 * 60 * 1000, // 15 phút
-    domain: 'localhost',
   },
   REFRESH: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: false,
     sameSite: 'lax' as const,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
-    domain: 'localhost',
   },
 };

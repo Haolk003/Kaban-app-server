@@ -75,7 +75,7 @@ export class TaskService {
           _max: { orderId: true },
         });
 
-        // Create task with relations
+        // Create a task with relations
 
         const { taskId, taskNumber } = await this.generateTaskId(
           tx,
@@ -97,9 +97,25 @@ export class TaskService {
             boardId: list.boardId,
             description: '',
             listId: input.listId,
+            priority: input?.priority || 'medium',
+            dueDate: input.dueDate,
           },
           include: this.includeRelations,
         });
+
+        if (input.attachmentsInput && input.attachmentsInput.length > 0) {
+         await tx.fileAttachment.createMany({
+            data: input.attachmentsInput.map((attachment) => ({
+              file_public_id: attachment.file_public_id,
+              filePath: attachment.filePath,
+              taskId: task.id,
+              fileName: attachment.fileName,
+              fileSize: attachment.fileSize,
+              fileType: attachment.fileType,
+              uploadedById: userId,
+            })),
+          });
+        }
 
         this.logger.verbose(`Task created:${task.id}`);
         return task;
@@ -122,7 +138,6 @@ export class TaskService {
 
         const isMember = await tx.boardMember.findFirst({
           where: {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             boardId: existingTask.boardId,
             userId,
             role: { in: ['OWNER', 'MEMBER', 'ADMIN'] },
@@ -167,7 +182,6 @@ export class TaskService {
         }
 
         const isOwner = await tx.boardMember.findUnique({
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           where: { userId_boardId: { userId: userId, boardId: task.boardId } },
         });
 
@@ -228,9 +242,9 @@ export class TaskService {
               ],
             }
           : null,
-        filter.status
-          ? { list: { status: filter.status } } // Lọc theo status từ List
-          : null,
+        // filter.status
+        //   ? { list: { status: filter.status } } // Lọc theo status từ List
+        //   : null,
         filter.priority ? { priority: filter.priority } : null,
         filter.labels
           ? { labels: { some: { id: { in: filter.labels } } } }
@@ -255,7 +269,7 @@ export class TaskService {
   private buildOrderByClause(
     filter: TaskFilterInput,
   ): Prisma.TaskOrderByWithRelationInput {
-    const sortMapping = {
+    const sortMapping: Record<string, Prisma.TaskOrderByWithRelationInput> = {
       CREATED_AT_ASC: { createdAt: 'asc' },
       CREATED_AT_DESC: { createdAt: 'desc' },
       DUE_DATE_ASC: { dueDate: 'asc' },
@@ -264,7 +278,6 @@ export class TaskService {
       PRIORITY_DESC: { priority: 'desc' },
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return sortMapping[filter.sortBy] || { createdAt: 'desc' };
   }
 

@@ -15,16 +15,14 @@ import { CommonModule } from 'y/common';
 import { PrismaService } from 'y/prisma';
 import { JwtService } from '@nestjs/jwt';
 import { EmailModule, EmailService } from 'y/email';
-import { ListService } from './list/list.service';
 
-import { ListModule } from './list/list.module';
-import { APP_FILTER } from '@nestjs/core';
-import { GlobalExceptionFilter } from 'y/common/filters/global-exception.filter';
+import { HealthModule } from 'y/health';
+
 
 @Module({
   imports: [
     CommonModule,
-    ListModule,
+    HealthModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL,

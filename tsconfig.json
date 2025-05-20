@@ -5,8 +5,11 @@
       "./src/types",
       "./libs/common/src/types"
     ],
-    "types": ["node", "express"],
-    "module": "commonjs",
+    "types": [
+      "node",
+      "express"
+    ],
+    "module": "CommonJS",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -24,16 +27,48 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "y/auth-library": ["libs/auth-library/src"],
-      "y/auth-library/*": ["libs/auth-library/src/*"],
-      "y/common": ["libs/common/src"],
-      "y/common/*": ["libs/common/src/*"],
-      "y/email": ["libs/email/src"],
-      "y/email/*": ["libs/email/src/*"],
-      "y/prisma": ["libs/prisma/src"],
-      "y/prisma/*": ["libs/prisma/src/*"],
-      "y/rabbitmq": ["libs/rabbitmq/src"],
-      "y/rabbitmq/*": ["libs/rabbitmq/src/*"]
+      "y/auth-library": [
+        "libs/auth-library/src"
+      ],
+      "y/auth-library/*": [
+        "libs/auth-library/src/*"
+      ],
+      "y/cloudinary": [
+        "libs/cloudinary/src"
+      ],
+      "y/cloudinary/*": [
+        "libs/cloudinary/src/*"
+      ],
+      "y/common": [
+        "libs/common/src"
+      ],
+      "y/common/*": [
+        "libs/common/src/*"
+      ],
+      "y/email": [
+        "libs/email/src"
+      ],
+      "y/email/*": [
+        "libs/email/src/*"
+      ],
+      "y/health": [
+        "libs/health/src"
+      ],
+      "y/health/*": [
+        "libs/health/src/*"
+      ],
+      "y/prisma": [
+        "libs/prisma/src"
+      ],
+      "y/prisma/*": [
+        "libs/prisma/src/*"
+      ],
+      "y/rabbitmq": [
+        "libs/rabbitmq/src"
+      ],
+      "y/rabbitmq/*": [
+        "libs/rabbitmq/src/*"
+      ]
     }
   }
 }

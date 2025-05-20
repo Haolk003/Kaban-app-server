@@ -46,6 +46,15 @@
         "tsConfigPath": "apps/board/tsconfig.app.json"
       }
     },
+    "cloudinary": {
+      "type": "library",
+      "root": "libs/cloudinary",
+      "entryFile": "index",
+      "sourceRoot": "libs/cloudinary/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/cloudinary/tsconfig.lib.json"
+      }
+    },
     "common": {
       "type": "library",
       "root": "libs/common",
@@ -71,6 +80,15 @@
       "sourceRoot": "apps/gateway/src",
       "compilerOptions": {
         "tsConfigPath": "apps/gateway/tsconfig.app.json"
+      }
+    },
+    "health": {
+      "type": "library",
+      "root": "libs/health",
+      "entryFile": "index",
+      "sourceRoot": "libs/health/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/health/tsconfig.lib.json"
       }
     },
     "prisma": {

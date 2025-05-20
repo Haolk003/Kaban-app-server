@@ -55,7 +55,7 @@ export class Task {
 
   @Field(() => Int)
   @Directive('@shareable')
-  @Column({ type: 'int' })
+  @Column({ type: 'int', default: 0 })
   orderId: number;
 
   @Field(() => String)
@@ -64,7 +64,7 @@ export class Task {
   @Column()
   listId: string;
 
-  @ManyToOne(() => List, (list) => list.task)
+  @ManyToOne(() => List, (list) => list.tasks)
   list: List;
 
   @Field(() => String)

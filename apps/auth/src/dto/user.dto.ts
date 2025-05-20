@@ -75,3 +75,31 @@ export class resetPasswordDto {
   @IsNotEmpty({ message: 'Password is required' })
   newPassword: string;
 }
+
+@InputType()
+export class AvatarInput {
+  @Field(() => String, { nullable: true })
+  url?: string;
+
+  @Field(() => String, { nullable: true })
+  public_id?: string;
+}
+
+@InputType()
+export class UpdateProfileDto {
+  @Field()
+  @IsNotEmpty({ message: 'Name is required' })
+  name: string;
+
+  @Field(() => AvatarInput, { nullable: true })
+  avatar?: AvatarInput;
+
+  @Field(() => String, { nullable: true })
+  jobName?: string;
+
+  @Field(() => String, { nullable: true })
+  bio?: string;
+
+  @Field(() => String, { nullable: true })
+  location?: string;
+}

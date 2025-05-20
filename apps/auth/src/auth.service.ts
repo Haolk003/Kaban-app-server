@@ -16,6 +16,8 @@ import { Response } from 'express';
 
 import * as crypto from 'crypto';
 import { ErrorHandlerService } from 'y/common/service/error-hander.service';
+import { UpdateProfileDto } from './dto/user.dto';
+import { CookieConfig, TokenType } from 'y/common/constants';
 
 @Injectable()
 export class AuthService {
@@ -29,7 +31,7 @@ export class AuthService {
     private readonly errorHander: ErrorHandlerService,
   ) {}
 
-  private sendToken(user: { email: string; id: string }) {
+   sendToken(user: { email: string; id: string }) {
     const access_token = this.jwtService.sign(
       {
         email: user.email,
@@ -45,12 +47,11 @@ export class AuthService {
     const refresh_token = this.jwtService.sign(
       {
         sub: user.id,
-        email: user.email,
         token_type: 'refreshToken',
       },
       {
         secret: this.configService.get<string>('REFRESH_TOKEN_KEY'),
-        expiresIn: '30d',
+        expiresIn: '7d',
       },
     );
 
@@ -249,7 +250,7 @@ export class AuthService {
             data: {
               email: profile.email,
               name: profile.lastName + profile.firstName,
-              avatar: profile.picture,
+              avatar: { public_id: null, url: profile.picture },
             },
           });
 
@@ -278,25 +279,12 @@ export class AuthService {
       }
 
       const { access_token, refresh_token } = this.sendToken(user);
-      res.cookie('accessToken', access_token, {
-        secure: false,
-        httpOnly: true,
-        sameSite: 'lax',
-        domain: 'localhost',
-        maxAge: 1000 * 60 * 5,
-        expires: new Date(Date.now() + 1000 * 60 * 5),
-      });
 
-      res.cookie('refreshToken', refresh_token, {
-        secure: false,
-        httpOnly: true,
-        sameSite: 'lax',
-        domain: 'localhost',
-        maxAge: 1000 * 60 * 60 * 24,
-        expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
-      });
+      res.cookie(TokenType.ACCESS, access_token, CookieConfig.ACCESS);
 
-      this.logger.log(`Google login successs: ${user.id}`);
+      res.cookie(TokenType.REFRESH, refresh_token, CookieConfig.REFRESH);
+
+      this.logger.log(`Google login success: ${user.id}`);
       return user;
     } catch (error) {
       this.errorHander.handleError(error as Error, 'AuthService.loginGoogle');
@@ -356,25 +344,11 @@ export class AuthService {
 
       const { access_token, refresh_token } = this.sendToken(user);
 
-      res.cookie('accessToken', access_token, {
-        secure: false,
-        httpOnly: true,
-        sameSite: 'lax',
-        maxAge: 1000 * 60 * 5,
-        domain: 'localhost',
-        expires: new Date(Date.now() + 1000 * 60 * 5),
-      });
+      res.cookie(TokenType.ACCESS, access_token, CookieConfig.ACCESS);
 
-      res.cookie('refreshToken', refresh_token, {
-        secure: false,
-        httpOnly: true,
-        sameSite: 'lax',
-        domain: 'localhost',
-        maxAge: 1000 * 60 * 60 * 24,
-        expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
-      });
+      res.cookie(TokenType.REFRESH, refresh_token, CookieConfig.REFRESH);
 
-      this.logger.log(`Github  login successs: ${user.id}`);
+      this.logger.log(`Github  login success: ${user.id}`);
       return user;
     } catch (error) {
       this.errorHander.handleError(
@@ -398,22 +372,12 @@ export class AuthService {
         id: user.id,
       });
 
-      res.cookie('accessToken', access_token, {
-        secure: false,
-        httpOnly: true,
-        sameSite: 'lax',
-        maxAge: 1000 * 60 * 5,
-        domain: 'localhost',
-      });
+      res.cookie(TokenType.ACCESS, access_token, CookieConfig.ACCESS);
 
-      res.cookie('refreshToken', refresh_token, {
-        secure: false,
-        httpOnly: true,
-        sameSite: 'lax',
-        domain: 'localhost',
-        maxAge: 1000 * 60 * 60 * 24,
-      });
-      this.logger.log(`login successs: ${user.id}`);
+      res.cookie(TokenType.REFRESH, refresh_token, CookieConfig.REFRESH);
+
+
+      this.logger.log(`login success: ${user.id}`);
       return { access_token, refresh_token };
     } catch (error) {
       this.errorHander.handleError(error as Error, 'AuthService.loginUser');
@@ -518,6 +482,46 @@ export class AuthService {
       return 'Password is updated';
     } catch (error) {
       this.errorHander.handleError(error as Error, 'AuthService.resetPassword');
+    }
+  }
+
+  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+    try {
+      const findUserAndUpdate = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          name: updateProfileDto.name,
+          bio: updateProfileDto.bio,
+          avatar: updateProfileDto.avatar
+            ? { ...updateProfileDto.avatar }
+            : undefined,
+          jobName: updateProfileDto.jobName,
+          location: updateProfileDto.location,
+        },
+      });
+
+      return findUserAndUpdate;
+    } catch (error) {
+      this.errorHander.handleError(error as Error, 'AuthService.updateProfile');
+    }
+  }
+
+  async findUserByEmail(email: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      return user;
+    } catch (error) {
+      this.errorHander.handleError(
+        error as Error,
+        'AuthService.findUserByEmail',
+      );
     }
   }
 

@@ -1,35 +1,28 @@
 version: '3.8'
 services:
-  api:
-    build:
-      context: .
-      dockerfile: ./apps/api/Dockerfile
-      target: builder
-    command: pnpm run start:dev api
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    ports:
-      - '4000:4000' # Chỉ mở port cho Gateway
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-      - auth
-      - redis
 
   auth:
     build:
       context: .
       dockerfile: ./apps/auth/Dockerfile
       target: builder
-    command: pnpm run start:dev auth
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        pnpm run start:dev auth
+      "
     environment:
-      DATABASE_URL: 'postgresql://postgres:01653186782@host.docker.internal:5432/test?schema=public'
+      DATABASE_URL: 'postgresql://postgres:070803@postgres:5432/kanban-app?schema=public'
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     ports:
       - '4001:4001'
+    healthcheck:
+      test: ["CMD", "curl", "-f" , "http://localhost:4001/health"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 5
     env_file:
       - .env
     volumes:
@@ -38,44 +31,105 @@ services:
     depends_on:
       - postgres
 
-  user:
+  board:
     build:
       context: .
-      dockerfile: ./apps/user/Dockerfile
+      dockerfile: ./apps/board/Dockerfile
       target: builder
-    command: pnpm run start:dev user
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        pnpm run start:dev board
+      "
     environment:
-      DATABASE_URL: 'postgresql://postgres:01653186782@localhost:5432/test?schema=public'
-
+      DATABASE_URL: 'postgresql://postgres:070803@postgres:5432/kanban-app?schema=public'
     ports:
-      - '4002:4002'
+      - '4003:4003'
+    healthcheck:
+      test: [ "CMD", "curl", "-f" , "http://localhost:4003/health" ]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 5
     env_file:
       - .env
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
+    depends_on:
+      - postgres
 
-  rabbitmq:
-    image: rabbitmq:management
-    container_name: rabbitmq
-    restart: always
-    ports:
-      - '5672:5672' # Cổng AMQP để giao tiếp giữa các service
-      - '15672:15672' # Cổng quản lý web RabbitMQ
+  task:
+    build:
+      context: .
+      dockerfile: ./apps/task/Dockerfile
+      target: builder
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        pnpm run start:dev task
+      "
     environment:
-      RABBITMQ_DEFAULT_USER: 'admin'
-      RABBITMQ_DEFAULT_PASS: 'admin'
+      DATABASE_URL: 'postgresql://postgres:070803@postgres:5432/kanban-app?schema=public'
+    ports:
+      - '4004:4004'
+    healthcheck:
+      test: [ "CMD", "curl", "-f" , "http://localhost:4004/health" ]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 5
+    env_file:
+      - .env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - postgres
+
+
+
+
+  #  user:
+#    build:
+#      context: .
+#      dockerfile: ./apps/user/Dockerfile
+#      target: builder
+#    command: pnpm run start:dev user
+#    environment:
+#      DATABASE_URL: 'postgresql://postgres:078003@localhost:5432/kanban-app?schema=public'
+#
+#    ports:
+#      - '4002:4002'
+#    env_file:
+#      - .env
+#    volumes:
+#      - .:/usr/src/app
+#      - /usr/src/app/node_modules
+
+#  rabbitmq:
+#    image: rabbitmq:management
+#    container_name: rabbitmq
+#    restart: always
+#    ports:
+#      - '5672:5672' # Cổng AMQP để giao tiếp giữa các service
+#      - '15672:15672' # Cổng quản lý web RabbitMQ
+#    environment:
+#      RABBITMQ_DEFAULT_USER: 'admin'
+#      RABBITMQ_DEFAULT_PASS: 'admin'
 
   postgres:
-    image: postgres:16
+    image: postgres:17
     container_name: my_postgres
     restart: always
     environment:
       POSTGRES_USER: 'postgres'
-      POSTGRES_PASSWORD: '01653186782'
-      POSTGRES_DB: 'test'
+      POSTGRES_PASSWORD: '070803'
+      POSTGRES_DB: 'kanban-app'
     ports:
       - '5432:5432'
+    healthcheck:
+          test: [ "CMD-SHELL", "pg_isready -U postgres -d kanban-app" ]
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -85,6 +139,38 @@ services:
     restart: always
     ports:
       - '6379:6379'
+
+
+  api:
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile
+      target: builder
+      args:
+        DATABASE_URL: 'postgresql://postgres:070803@postgres:5432/kanban-app?schema=public'
+    command: pnpm run start:dev api
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - '4000:4000' # Chỉ mở port cho Gateway
+    environment:
+        DATABASE_URL: 'postgresql://postgres:070803@postgres:5432/kanban-app?schema=public'
+        AUTH_SERVICE_URL: 'http://auth:4001/graphql'
+        BOARD_SERVICE_URL: 'http://board:4003/graphql'
+        TASK_SERVICE_URL: 'http://task:4004/graphql'
+    env_file:
+      - .env
+    depends_on:
+      auth:
+        condition: service_healthy
+      postgres:
+        condition: service_started
+      board:
+        condition: service_healthy
+      task:
+        condition: service_healthy
+
 
 volumes:
   postgres_data:

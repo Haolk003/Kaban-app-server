@@ -11,7 +11,7 @@ import { AddMemberDto } from './dto/add-member-board.dto';
 import { EmailService } from 'y/email';
 
 import { generateProjectKey } from './utils/project-key.generator';
-import { ErrorHandlerService } from 'y/common/service/error-hander.service';
+import { $Enums } from '@prisma/client';
 
 @Injectable()
 export class BoardService {
@@ -23,11 +23,35 @@ export class BoardService {
     private readonly errorHandler: ErrorHandlerService,
   ) {}
 
-  async createBoard(createBoardDto: CreateBoardDto) {
+
+  getHello(): string {
+    return 'Hello World!';
+  }
+
+  // utils/color.ts
+  generateBoardColor = (): string => {
+    const PRESET_COLORS = [
+      '#3b82f6', // Blue
+      '#10b981', // Green
+      '#f59e0b', // Amber
+      '#ec4899', // Pink
+      '#8b5cf6', // Purple
+      '#ef4444', // Red
+      '#06b6d4', // Cyan
+      '#84cc16', // Lime
+      '#f97316', // Orange
+      '#64748b', // Slate
+    ];
+
+    return PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)];
+  };
+
+  async createBoard(createBoardDto: CreateBoardDto, ownerId: string) {
+
     try {
       return await this.prisma.$transaction(async (tx) => {
         const owner = await tx.user.findUnique({
-          where: { id: createBoardDto.ownerId },
+          where: { id: ownerId },
         });
 
         if (!owner) {
@@ -42,11 +66,12 @@ export class BoardService {
           data: {
             title: createBoardDto.title,
             description: createBoardDto.description || '',
-            ownerId: createBoardDto.ownerId,
+            ownerId: ownerId,
             projectKey: projectKey,
+            color: this.generateBoardColor(),
             member: {
               create: {
-                userId: createBoardDto.ownerId,
+                userId: ownerId,
                 role: 'OWNER',
               },
             },
@@ -65,7 +90,7 @@ export class BoardService {
             name,
             order: index + 1,
             boardId: board.id,
-            status: name,
+            createdBy: 'owner',
           })),
         });
 
@@ -74,6 +99,216 @@ export class BoardService {
       });
     } catch (error) {
       this.errorHandler.handleError(error as Error, 'BoardService.createBoard');
+    }
+  }
+
+  async getBoardsByUserId(userId: string) {
+    try {
+      const userWithBoard = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          boardMembers: {
+            include: {
+              board: {
+                include: {
+                  _count: {
+                    select: {
+                      tasks: true,
+                      member: true,
+                    },
+                  },
+                  tasks: {
+                    select: {
+                      id: true,
+                      subTask: {
+                        select: {
+                          id: true,
+                          isCompleted: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              lastAccessed: 'desc',
+            },
+          },
+        },
+      });
+
+      if (!userWithBoard) return [];
+
+      return userWithBoard.boardMembers.map((boardMember) => {
+        const completedTasks = boardMember.board.tasks.reduce((acc, task) => {
+          return (
+            acc + (task.subTask.every((subTask) => subTask.isCompleted) ? 1 : 0)
+          );
+        }, 0);
+
+        const isOwner = boardMember.board.ownerId === userId;
+
+        return {
+          id: boardMember.board.id,
+          title: boardMember.board.title,
+          description: boardMember.board.description,
+          projectKey: boardMember.board.projectKey,
+          color: boardMember?.board?.color || '#3b82f6',
+          createdAt: boardMember.board.createdAt,
+          updatedAt: boardMember.board.updatedAt,
+          tasksCount: {
+            total: boardMember.board._count.tasks || 0,
+            completed: completedTasks,
+          },
+          membersCount: boardMember.board._count.member,
+          role: boardMember.role,
+          status: boardMember.board.status,
+          isOwner,
+        };
+      });
+    } catch (error: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      this.logger.error(`Failed to get boards: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getBoardById(boardId: string, userId: string) {
+    try {
+      const board = await this.prisma.board.findUnique({
+        where: { id: boardId, ownerId: userId },
+        include: {
+          member: true,
+          list: {
+            include: {
+              tasks: true,
+            },
+          },
+        },
+      });
+      if (!board) {
+        throw new NotFoundException('Board not found');
+      }
+      return board;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+
+      this.logger.error(`Failed to get board: ${errorMessage}`);
+
+      throw error;
+    }
+  }
+
+  async getBoardDetailsWithTasks(boardId: string, userId: string) {
+    try {
+      const board = await this.prisma.board.findUnique({
+        where: { id: boardId, ownerId: userId },
+        include: {
+          owner: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatar: true,
+            },
+          },
+
+          list: {
+            orderBy: {
+              order: 'asc',
+            },
+            include: {
+              tasks: {
+                orderBy: { orderId: 'asc' },
+                include: {
+                  subTask: {
+                    orderBy: { createdAt: 'asc' },
+                    select: {
+                      id: true,
+                      title: true,
+                      isCompleted: true,
+                    },
+                  },
+                  assigner: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
+                      avatar: true,
+                    },
+                  },
+                  labels: true,
+                  assignedTo: {
+                    include: {
+                      user: {
+                        select: {
+                          id: true,
+                          name: true,
+                          avatar: true,
+                        },
+                      },
+                    },
+                  },
+                  _count: {
+                    select: {
+                      subTask: true,
+                      likes: true,
+                      discussion: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          member: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatar: true,
+                },
+              },
+            },
+          },
+          labels: true,
+          _count: {
+            select: {
+              tasks: true,
+              member: true,
+              list: true,
+            },
+          },
+        },
+      });
+
+      if (!board) {
+        throw new NotFoundException('Board not found');
+      }
+
+      return {
+        ...board,
+        counts: board._count,
+        lists: board.list.map((list) => ({
+          ...list,
+          tasks: list.tasks.map((task) => ({
+            ...task,
+            completedSubTasks: task.subTask.filter(
+              (subTask) => subTask.isCompleted,
+            ).length,
+            totalSubTasks: task.subTask.length,
+            counts: task._count,
+          })),
+        })),
+      };
+    } catch (error: any) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+
+      this.logger.error(`Failed to get board details: ${errorMessage}`);
+      throw error;
     }
   }
 
@@ -153,7 +388,7 @@ export class BoardService {
         data: {
           boardId,
           userId: memberId,
-          role: role,
+          role: role as $Enums.Member,
         },
         include: {
           board: true,
