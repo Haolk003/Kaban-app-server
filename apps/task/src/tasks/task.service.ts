@@ -12,6 +12,7 @@ import { DefaultArgs } from '@prisma/client/runtime/library';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskFilterInput } from './dto/task-filter.dto';
 import { PaginationInput } from './dto/pagination-filter.dto';
+import { Priority } from 'y/common/enum/priority.enum';
 
 @Injectable()
 export class TaskService {
@@ -97,14 +98,14 @@ export class TaskService {
             boardId: list.boardId,
             description: '',
             listId: input.listId,
-            priority: input?.priority || 'medium',
+            priority: (input?.priority as Priority) || 'medium',
             dueDate: input.dueDate,
           },
           include: this.includeRelations,
         });
 
         if (input.attachmentsInput && input.attachmentsInput.length > 0) {
-         await tx.fileAttachment.createMany({
+          await tx.fileAttachment.createMany({
             data: input.attachmentsInput.map((attachment) => ({
               file_public_id: attachment.file_public_id,
               filePath: attachment.filePath,
